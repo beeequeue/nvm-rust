@@ -2,6 +2,19 @@ use crate::config::Config;
 use crate::subcommand::Subcommand;
 use clap::ArgMatches;
 use semver::VersionReq;
+use serde::Deserialize;
+use std::borrow::Borrow;
+
+#[derive(Deserialize, Debug)]
+#[serde(rename_all = "snake_case")]
+struct ResponseVersion {
+    // version: Version,
+    #[serde(rename = "version")]
+    version_string: String,
+    files: Vec<String>,
+    lts: bool,
+    // date: Instant,
+}
 
 pub struct Ls;
 
@@ -20,10 +33,31 @@ impl Ls {
             }
         }
     }
+
+    fn fetch_versions() -> Result<Vec<ResponseVersion>, String> {
+        let response = reqwest::blocking::get("https://nodejs.org/dist/inde.json");
+
+        if response.is_err() {
+            return Result::Err(response.unwrap_err().to_string());
+        }
+
+        let body = response.unwrap().text().unwrap();
+        let versions: Vec<ResponseVersion> = serde_json::from_str(body.borrow()).unwrap();
+
+        println!("{:?}", versions);
+
+        Result::Ok(versions)
+    }
 }
 
 impl Subcommand for Ls {
-    fn run(matches: ArgMatches, config: Config) -> () {
-        unimplemented!()
+    fn run(matches: ArgMatches, _: Config) -> Result<(), String> {
+        let versions = Self::fetch_versions();
+
+        if versions.is_err() {
+            return Result::Err(versions.unwrap_err());
+        }
+
+        Result::Ok(())
     }
 }

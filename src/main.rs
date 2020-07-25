@@ -21,8 +21,8 @@ fn main() {
 
     match matches.subcommand_name() {
         Some("ls") => Ls::run(matches, config),
-        _ => {}
-    }
+        _ => (),
+    };
 
     // println!("{:?}", matches);
 }
