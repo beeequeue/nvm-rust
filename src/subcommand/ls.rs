@@ -121,26 +121,29 @@ impl Subcommand for Ls {
 
 #[cfg(test)]
 mod tests {
-    use std::borrow::Borrow;
-    use std::fs;
+    #[cfg(test)]
+    mod filter_major_versions {
+        use std::borrow::Borrow;
+        use std::fs;
 
-    use crate::subcommand::ls::Ls;
+        use crate::subcommand::ls::Ls;
 
-    use super::NodeVersion;
+        use super::super::NodeVersion;
 
-    #[test]
-    fn filter_major_versions_filters_correctly() {
-        let test_data = fs::read_to_string("test-data/node-versions.json").unwrap();
-        let test_data: Vec<NodeVersion> = serde_json::from_str(test_data.borrow()).unwrap();
+        #[test]
+        fn filters_correctly() {
+            let test_data = fs::read_to_string("test-data/node-versions.json").unwrap();
+            let test_data: Vec<NodeVersion> = serde_json::from_str(test_data.borrow()).unwrap();
 
-        assert_eq!(
-            Ls::filter_major_versions(test_data),
-            vec![
-                NodeVersion::new(String::from("14.6.0"), String::from("2020-07-15")),
-                NodeVersion::new(String::from("13.14.0"), String::from("2020-04-28")),
-                NodeVersion::new(String::from("12.18.3"), String::from("2020-07-22")),
-                NodeVersion::new(String::from("11.15.0"), String::from("2019-04-30")),
-            ]
-        );
+            assert_eq!(
+                Ls::filter_major_versions(test_data),
+                vec![
+                    NodeVersion::new(String::from("14.6.0"), String::from("2020-07-15")),
+                    NodeVersion::new(String::from("13.14.0"), String::from("2020-04-28")),
+                    NodeVersion::new(String::from("12.18.3"), String::from("2020-07-22")),
+                    NodeVersion::new(String::from("11.15.0"), String::from("2019-04-30")),
+                ]
+            );
+        }
     }
 }
