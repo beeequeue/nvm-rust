@@ -1,10 +1,12 @@
-mod config;
-mod subcommand;
+use clap::{clap_app, crate_version, ArgMatches};
+use semver::VersionReq;
 
-use clap::{clap_app, crate_version};
 use config::Config;
 use subcommand::ls::Ls;
 use subcommand::Subcommand;
+
+mod config;
+mod subcommand;
 
 fn main() {
     let config = Config::new();
@@ -19,10 +21,17 @@ fn main() {
         )
     ).get_matches();
 
-    match matches.subcommand_name() {
-        Some("ls") => Ls::run(matches, config),
-        _ => (),
+    let result = match matches.subcommand_name() {
+        Some("ls") => Ls::init().run(matches.subcommand_matches("ls").unwrap(), config),
+        _ => Result::Ok(()),
     };
 
-    // println!("{:?}", matches);
+    println!(
+        "{:?}",
+        if result.is_err() {
+            result.unwrap_err()
+        } else {
+            String::from("OK")
+        }
+    );
 }
