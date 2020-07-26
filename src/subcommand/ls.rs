@@ -114,6 +114,24 @@ impl Subcommand for Ls {
 
         let versions = versions.unwrap();
         let versions = Self::filter_major_versions(versions);
+        let versions_str = versions
+            .into_iter()
+            .map(|version| format!("{:15}{}", version.version, version.date))
+            .collect::<Vec<String>>()
+            .join("\n");
+
+        let output_str = format!(
+            "
+Available for download:
+{}
+
+Specify a version range to show more results.
+e.g. `nvm ls 12`
+",
+            versions_str
+        );
+
+        println!("{}", output_str.trim());
 
         Result::Ok(())
     }

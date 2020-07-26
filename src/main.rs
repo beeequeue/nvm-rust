@@ -27,7 +27,7 @@ fn main() {
     };
 
     println!(
-        "{:?}",
+        "{}",
         if result.is_err() {
             result.unwrap_err()
         } else {
