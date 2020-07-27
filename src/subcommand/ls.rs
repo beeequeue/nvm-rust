@@ -2,9 +2,8 @@ use std::borrow::Borrow;
 use std::collections::HashSet;
 
 use clap::ArgMatches;
-use semver::{Version, VersionReq};
+use semver::VersionReq;
 
-use crate::config::Config;
 use crate::node_version::{NodeVersion, OnlineNodeVersion};
 use crate::subcommand::Subcommand;
 
@@ -70,7 +69,7 @@ impl Ls {
 }
 
 impl Subcommand for Ls {
-    fn run(self, matches: &ArgMatches, _: Config) -> Result<(), String> {
+    fn run(self, matches: &ArgMatches) -> Result<(), String> {
         let versions = Self::fetch_versions();
 
         if versions.is_err() {
@@ -81,7 +80,7 @@ impl Subcommand for Ls {
         let versions = Self::filter_major_versions(versions);
         let versions_str = versions
             .into_iter()
-            .map(|version| format!("{:15}{}", version.version(), version.release_date()))
+            .map(|version| format!("{:15}{}", version.version(), version.release_date))
             .collect::<Vec<String>>()
             .join("\n");
 
