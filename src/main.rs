@@ -7,6 +7,7 @@ use subcommand::Subcommand;
 
 mod config;
 mod subcommand;
+mod node_version;
 
 fn main() {
     let config = Config::new();

@@ -3,28 +3,10 @@ use std::collections::HashSet;
 
 use clap::ArgMatches;
 use semver::{Version, VersionReq};
-use serde::Deserialize;
 
 use crate::config::Config;
+use crate::node_version::{NodeVersion, OnlineNodeVersion};
 use crate::subcommand::Subcommand;
-
-#[derive(Deserialize, Debug, Eq, PartialEq)]
-#[serde(rename_all(deserialize = "snake_case"))]
-struct NodeVersion {
-    version: String,
-    files: Vec<String>,
-    date: String,
-}
-
-impl NodeVersion {
-    pub fn new(version: String, date: String) -> Self {
-        Self {
-            version,
-            date,
-            files: vec![],
-        }
-    }
-}
 
 pub struct Ls {
     lts_version_strings: Vec<&'static str>,
@@ -51,7 +33,7 @@ impl Ls {
         }
     }
 
-    fn fetch_versions() -> Result<Vec<NodeVersion>, String> {
+    fn fetch_versions() -> Result<Vec<OnlineNodeVersion>, String> {
         let response = reqwest::blocking::get("https://nodejs.org/dist/index.json");
 
         if response.is_err() {
@@ -66,30 +48,13 @@ impl Ls {
         })
     }
 
-    // Required since the versions are prefixed with 'v' which `semver` can't handle
-    fn parse_semver_leading_v(version_string: &String) -> Result<Version, String> {
-        let version_string = if version_string.starts_with('v') {
-            version_string.get(1..).unwrap()
-        } else {
-            version_string
-        };
-
-        Version::parse(version_string).map_err(|err| err.to_string())
-    }
-
-    fn filter_major_versions(versions: Vec<NodeVersion>) -> Vec<NodeVersion> {
+    fn filter_major_versions(versions: Vec<OnlineNodeVersion>) -> Vec<OnlineNodeVersion> {
         let mut found_major_versions: HashSet<u64> = HashSet::new();
 
         versions
             .into_iter()
             .filter(|version| {
-                let version = Self::parse_semver_leading_v(version.version.borrow());
-
-                if let Result::Err(e) = version {
-                    return false;
-                }
-
-                let version = version.unwrap();
+                let version = version.version();
                 let major = version.major;
 
                 if found_major_versions.contains(major.borrow()) {
@@ -116,7 +81,7 @@ impl Subcommand for Ls {
         let versions = Self::filter_major_versions(versions);
         let versions_str = versions
             .into_iter()
-            .map(|version| format!("{:15}{}", version.version, version.date))
+            .map(|version| format!("{:15}{}", version.version(), version.release_date()))
             .collect::<Vec<String>>()
             .join("\n");
 
@@ -146,20 +111,37 @@ mod tests {
 
         use crate::subcommand::ls::Ls;
 
-        use super::super::NodeVersion;
+        use super::super::OnlineNodeVersion;
 
         #[test]
         fn filters_correctly() {
             let test_data = fs::read_to_string("test-data/node-versions.json").unwrap();
-            let test_data: Vec<NodeVersion> = serde_json::from_str(test_data.borrow()).unwrap();
+            let test_data: Vec<OnlineNodeVersion> =
+                serde_json::from_str(test_data.borrow()).unwrap();
 
             assert_eq!(
                 Ls::filter_major_versions(test_data),
                 vec![
-                    NodeVersion::new(String::from("14.6.0"), String::from("2020-07-15")),
-                    NodeVersion::new(String::from("13.14.0"), String::from("2020-04-28")),
-                    NodeVersion::new(String::from("12.18.3"), String::from("2020-07-22")),
-                    NodeVersion::new(String::from("11.15.0"), String::from("2019-04-30")),
+                    OnlineNodeVersion::new(
+                        String::from("14.6.0"),
+                        String::from("2020-07-15"),
+                        vec![]
+                    ),
+                    OnlineNodeVersion::new(
+                        String::from("13.14.0"),
+                        String::from("2020-04-28"),
+                        vec![]
+                    ),
+                    OnlineNodeVersion::new(
+                        String::from("12.18.3"),
+                        String::from("2020-07-22"),
+                        vec![]
+                    ),
+                    OnlineNodeVersion::new(
+                        String::from("11.15.0"),
+                        String::from("2019-04-30"),
+                        vec![]
+                    ),
                 ]
             );
         }
