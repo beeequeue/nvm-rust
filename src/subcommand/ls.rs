@@ -32,21 +32,6 @@ impl Ls {
         }
     }
 
-    fn fetch_versions() -> Result<Vec<OnlineNodeVersion>, String> {
-        let response = reqwest::blocking::get("https://nodejs.org/dist/index.json");
-
-        if response.is_err() {
-            return Result::Err(response.unwrap_err().to_string());
-        }
-
-        let body = response.unwrap().text().unwrap();
-
-        serde_json::from_str(body.borrow()).map_err(|err| {
-            println!("{}", err);
-            err.to_string()
-        })
-    }
-
     fn filter_major_versions(versions: Vec<OnlineNodeVersion>) -> Vec<OnlineNodeVersion> {
         let mut found_major_versions: HashSet<u64> = HashSet::new();
 
@@ -77,19 +62,21 @@ impl Subcommand for Ls {
             .collect::<Vec<String>>()
             .join("\n");
 
-        let available_versions = Self::fetch_versions();
+        let online_versions = OnlineNodeVersion::fetch_all();
+        let online_versions_str: String;
 
-        if available_versions.is_err() {
-            return Result::Err("versions error: ".to_owned() + &available_versions.unwrap_err());
+        if online_versions.is_ok() {
+            let versions = online_versions.unwrap();
+            let versions = Self::filter_major_versions(versions);
+
+            online_versions_str = versions
+                .into_iter()
+                .map(|version| format!("{:15}{}", version.version(), version.release_date))
+                .collect::<Vec<String>>()
+                .join("\n");
+        } else {
+            online_versions_str = String::from("Could not fetch versions...");
         }
-
-        let versions = available_versions.unwrap();
-        let versions = Self::filter_major_versions(versions);
-        let versions_str = versions
-            .into_iter()
-            .map(|version| format!("{:15}{}", version.version(), version.release_date))
-            .collect::<Vec<String>>()
-            .join("\n");
 
         let output_str = format!(
             "
@@ -102,7 +89,7 @@ Available for download:
 Specify a version range to show more results.
 e.g. `nvm ls 12`
 ",
-            installed_versions_str, versions_str
+            installed_versions_str, online_versions_str
         );
 
         println!("{}", output_str.trim());

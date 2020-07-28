@@ -34,6 +34,21 @@ pub struct OnlineNodeVersion {
 }
 
 impl OnlineNodeVersion {
+    pub fn fetch_all() -> Result<Vec<Self>, String> {
+        let response = reqwest::blocking::get("https://nodejs.org/dist/index.json");
+
+        if response.is_err() {
+            return Result::Err(response.unwrap_err().to_string());
+        }
+
+        let body = response.unwrap().text().unwrap();
+
+        serde_json::from_str(body.borrow()).map_err(|err| {
+            println!("{}", err);
+            err.to_string()
+        })
+    }
+
     pub fn download_url(&self) -> Result<Url, String> {
         let file_name = self.get_file();
 
