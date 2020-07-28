@@ -4,7 +4,7 @@ use std::collections::HashSet;
 use clap::ArgMatches;
 use semver::VersionReq;
 
-use crate::node_version::{NodeVersion, OnlineNodeVersion};
+use crate::node_version::{InstalledNodeVersion, NodeVersion, OnlineNodeVersion};
 use crate::subcommand::Subcommand;
 
 pub struct Ls {
@@ -70,13 +70,20 @@ impl Ls {
 
 impl Subcommand for Ls {
     fn run(self, matches: &ArgMatches) -> Result<(), String> {
-        let versions = Self::fetch_versions();
+        let installed_versions = InstalledNodeVersion::get_all();
+        let installed_versions_str = installed_versions
+            .into_iter()
+            .map(|version| format!("{:15}", version.version()))
+            .collect::<Vec<String>>()
+            .join("\n");
 
-        if versions.is_err() {
-            return Result::Err("versions error: ".to_owned() + &versions.unwrap_err());
+        let available_versions = Self::fetch_versions();
+
+        if available_versions.is_err() {
+            return Result::Err("versions error: ".to_owned() + &available_versions.unwrap_err());
         }
 
-        let versions = versions.unwrap();
+        let versions = available_versions.unwrap();
         let versions = Self::filter_major_versions(versions);
         let versions_str = versions
             .into_iter()
@@ -86,13 +93,16 @@ impl Subcommand for Ls {
 
         let output_str = format!(
             "
+Installed versions:
+{}
+
 Available for download:
 {}
 
 Specify a version range to show more results.
 e.g. `nvm ls 12`
 ",
-            versions_str
+            installed_versions_str, versions_str
         );
 
         println!("{}", output_str.trim());
@@ -124,22 +134,22 @@ mod tests {
                     OnlineNodeVersion::new(
                         String::from("14.6.0"),
                         String::from("2020-07-15"),
-                        vec![]
+                        vec![],
                     ),
                     OnlineNodeVersion::new(
                         String::from("13.14.0"),
                         String::from("2020-04-28"),
-                        vec![]
+                        vec![],
                     ),
                     OnlineNodeVersion::new(
                         String::from("12.18.3"),
                         String::from("2020-07-22"),
-                        vec![]
+                        vec![],
                     ),
                     OnlineNodeVersion::new(
                         String::from("11.15.0"),
                         String::from("2019-04-30"),
-                        vec![]
+                        vec![],
                     ),
                 ]
             );
