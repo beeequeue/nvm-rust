@@ -1,14 +1,36 @@
-use std::borrow::Borrow;
-use std::path::PathBuf;
+use std::{borrow::Borrow, path::PathBuf};
 
 use reqwest::Url;
 use semver::{SemVerError, Version};
 use serde::Deserialize;
 
 use crate::CONFIG;
+use std::collections::HashSet;
 
 pub trait NodeVersion {
     fn version(&self) -> Version;
+}
+
+impl dyn NodeVersion {
+    pub fn filter_major_versions<V: NodeVersion>(versions: Vec<V>) -> Vec<V> {
+        let mut found_major_versions: HashSet<u64> = HashSet::new();
+
+        versions
+            .into_iter()
+            .filter(|version| {
+                let version = version.version();
+                let major = version.major;
+
+                if found_major_versions.contains(major.borrow()) {
+                    return false;
+                }
+
+                found_major_versions.insert(major.clone());
+
+                true
+            })
+            .collect()
+    }
 }
 
 /// Handles `vX.X.X` prefixes

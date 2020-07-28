@@ -3,7 +3,6 @@ hard_tabs = false
 tab_spaces = 4
 newline_style = "Auto"
 use_small_heuristics = "Default"
-reorder_imports = true
 reorder_modules = true
 remove_nested_parens = true
 edition = "2018"
@@ -11,5 +10,10 @@ merge_derives = true
 use_try_shorthand = false
 use_field_init_shorthand = false
 force_explicit_abi = true
-#trailing_comma = "Vertical"
-#match_block_trailing_comma = true
+
+### Mine
+trailing_comma = "Vertical"
+match_block_trailing_comma = true
+
+merge_imports = true
+reorder_imports = true

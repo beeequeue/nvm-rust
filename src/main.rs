@@ -3,14 +3,18 @@
 use clap::{clap_app, crate_version};
 
 use config::Config;
+use std::num::ParseIntError;
 use subcommand::ls::Ls;
-use subcommand::Subcommand;
 
 mod config;
 mod node_version;
 mod subcommand;
 
 static CONFIG: Config = Config::new();
+
+fn validate_number(value: &str) -> Result<i32, String> {
+    value.parse().map_err(|err: ParseIntError| err.to_string())
+}
 
 fn main() {
     let matches = clap_app!("nvm(-rust)" =>
@@ -19,7 +23,9 @@ fn main() {
         (@subcommand ls =>
             (alias: "list")
             (about: "List installed and released node versions")
-            (@arg FILTER: {Ls::validate_filter} "Filter by semantic versions. e.g. `12`, `LTS`, `^10.9`, `>=8.10`")
+            (@arg installed: -i --installed "Only display installed versions")
+            (@arg online: -o --online --available "Only display available versions")
+            (@arg filter: {Ls::validate_filter} "Filter by semantic versions. e.g. `12`, `^10.9`, `>=8.10`, `>=8, <9`")
         )
     ).get_matches();
 

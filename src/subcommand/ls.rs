@@ -1,95 +1,85 @@
 use std::borrow::Borrow;
-use std::collections::HashSet;
 
 use clap::ArgMatches;
 use semver::VersionReq;
 
-use crate::node_version::{InstalledNodeVersion, NodeVersion, OnlineNodeVersion};
-use crate::subcommand::Subcommand;
+use crate::{
+    node_version::{InstalledNodeVersion, NodeVersion, OnlineNodeVersion},
+    subcommand::Subcommand,
+};
 
-pub struct Ls {
-    lts_version_strings: Vec<&'static str>,
-    lts_version_reqs: Vec<VersionReq>,
-}
+pub struct Ls;
 
 impl Ls {
-    pub fn init() -> Self {
-        let strings = vec![">=10, <11", ">=12, <13", ">=14, <15"];
-
-        Self {
-            lts_version_strings: strings.to_owned(),
-            lts_version_reqs: strings
-                .iter()
-                .map(|range| VersionReq::parse(range).unwrap())
-                .collect(),
-        }
-    }
-
     pub fn validate_filter(value: &str) -> Result<VersionReq, String> {
-        match value {
-            val if (val.to_lowercase() == "lts") => Result::Ok(VersionReq::any()),
-            val => VersionReq::parse(val).map_err(|_| String::from("Invalid version.")),
-        }
-    }
-
-    fn filter_major_versions(versions: Vec<OnlineNodeVersion>) -> Vec<OnlineNodeVersion> {
-        let mut found_major_versions: HashSet<u64> = HashSet::new();
-
-        versions
-            .into_iter()
-            .filter(|version| {
-                let version = version.version();
-                let major = version.major;
-
-                if found_major_versions.contains(major.borrow()) {
-                    return false;
-                }
-
-                found_major_versions.insert(major.clone());
-
-                true
-            })
-            .collect()
+        VersionReq::parse(value).map_err(|_| String::from("Invalid semver range."))
     }
 }
 
 impl Subcommand for Ls {
     fn run(self, matches: &ArgMatches) -> Result<(), String> {
+        let show_installed = !matches.is_present("online");
+        let show_online = !matches.is_present("installed");
+
+        let filter = matches
+            .value_of("filter")
+            .map(|version_str| VersionReq::parse(version_str).unwrap());
+
         let installed_versions = InstalledNodeVersion::get_all();
-        let installed_versions_str = installed_versions
-            .into_iter()
-            .map(|version| format!("{:15}", version.version()))
-            .collect::<Vec<String>>()
-            .join("\n");
+        let mut installed_versions_str = String::new();
 
-        let online_versions = OnlineNodeVersion::fetch_all();
-        let online_versions_str: String;
+        if show_installed {
+            installed_versions_str = String::from("Installed versions:\n");
 
-        if online_versions.is_ok() {
-            let versions = online_versions.unwrap();
-            let versions = Self::filter_major_versions(versions);
+            installed_versions_str.push_str(
+                installed_versions
+                    .into_iter()
+                    .map(|version| format!("{:15}", version.version()))
+                    .collect::<Vec<String>>()
+                    .join("\n")
+                    .borrow(),
+            );
 
-            online_versions_str = versions
-                .into_iter()
-                .map(|version| format!("{:15}{}", version.version(), version.release_date))
-                .collect::<Vec<String>>()
-                .join("\n");
-        } else {
-            online_versions_str = String::from("Could not fetch versions...");
+            // For formatting
+            if show_installed && show_online {
+                installed_versions_str.push('\n');
+            }
         }
 
+        let online_versions = OnlineNodeVersion::fetch_all();
+        let mut online_versions_str = String::new();
+
+        if show_online {
+            online_versions_str = String::from("Available for download:\n");
+
+            if online_versions.is_ok() {
+                let versions = online_versions.unwrap();
+                let versions = NodeVersion::filter_major_versions(versions);
+
+                online_versions_str.push_str(
+                    versions
+                        .into_iter()
+                        .map(|version| format!("{:15}{}", version.version(), version.release_date))
+                        .collect::<Vec<String>>()
+                        .join("\n")
+                        .borrow(),
+                );
+            } else {
+                online_versions_str = String::from("Could not fetch versions...");
+            }
+
+            online_versions_str.push('\n');
+        }
+
+        let hint = if filter.is_none() {
+            String::from("Specify a version range to show more results.\ne.g. `nvm ls 12`")
+        } else {
+            String::new()
+        };
+
         let output_str = format!(
-            "
-Installed versions:
-{}
-
-Available for download:
-{}
-
-Specify a version range to show more results.
-e.g. `nvm ls 12`
-",
-            installed_versions_str, online_versions_str
+            "{}\n{}\n{}",
+            installed_versions_str, online_versions_str, hint
         );
 
         println!("{}", output_str.trim());
@@ -102,12 +92,9 @@ e.g. `nvm ls 12`
 mod tests {
     #[cfg(test)]
     mod filter_major_versions {
-        use std::borrow::Borrow;
-        use std::fs;
+        use std::{borrow::Borrow, fs};
 
-        use crate::subcommand::ls::Ls;
-
-        use super::super::OnlineNodeVersion;
+        use super::super::{NodeVersion, OnlineNodeVersion};
 
         #[test]
         fn filters_correctly() {
@@ -116,7 +103,7 @@ mod tests {
                 serde_json::from_str(test_data.borrow()).unwrap();
 
             assert_eq!(
-                Ls::filter_major_versions(test_data),
+                NodeVersion::filter_major_versions(test_data),
                 vec![
                     OnlineNodeVersion::new(
                         String::from("14.6.0"),

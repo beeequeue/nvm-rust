@@ -1,5 +1,4 @@
-use std::fs::create_dir_all;
-use std::path::PathBuf;
+use std::{fs::create_dir_all, path::PathBuf};
 
 #[derive(Copy, Clone)]
 pub struct Config {
