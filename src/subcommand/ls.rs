@@ -17,7 +17,7 @@ impl Ls {
 }
 
 impl Subcommand for Ls {
-    fn run(self, matches: &ArgMatches) -> Result<(), String> {
+    fn run(matches: &ArgMatches) -> Result<(), String> {
         let show_installed = !matches.is_present("online");
         let show_online = !matches.is_present("installed");
 
@@ -25,7 +25,12 @@ impl Subcommand for Ls {
             .value_of("filter")
             .map(|version_str| VersionReq::parse(version_str).unwrap());
 
-        let installed_versions = InstalledNodeVersion::get_all();
+        let mut installed_versions = InstalledNodeVersion::get_all();
+        if filter.is_some() {
+            installed_versions =
+                NodeVersion::filter_version_req(installed_versions, filter.to_owned().unwrap());
+        }
+
         let mut installed_versions_str = String::new();
 
         if show_installed {
@@ -46,18 +51,29 @@ impl Subcommand for Ls {
             }
         }
 
-        let online_versions = OnlineNodeVersion::fetch_all();
         let mut online_versions_str = String::new();
 
         if show_online {
+            let online_versions_result = OnlineNodeVersion::fetch_all();
             online_versions_str = String::from("Available for download:\n");
 
-            if online_versions.is_ok() {
-                let versions = online_versions.unwrap();
-                let versions = NodeVersion::filter_major_versions(versions);
+            if online_versions_result.is_ok() {
+                let mut online_versions = online_versions_result.unwrap();
+
+                if filter.is_some() {
+                    let limit = if !show_installed { 10 } else { 5 };
+
+                    online_versions = NodeVersion::filter_version_req(
+                        online_versions,
+                        filter.to_owned().unwrap(),
+                    );
+                    online_versions = online_versions[..limit].to_vec();
+                } else {
+                    online_versions = NodeVersion::filter_default(online_versions);
+                }
 
                 online_versions_str.push_str(
-                    versions
+                    online_versions
                         .into_iter()
                         .map(|version| format!("{:15}{}", version.version(), version.release_date))
                         .collect::<Vec<String>>()
@@ -91,7 +107,7 @@ impl Subcommand for Ls {
 #[cfg(test)]
 mod tests {
     #[cfg(test)]
-    mod filter_major_versions {
+    mod filter_default {
         use std::{borrow::Borrow, fs};
 
         use super::super::{NodeVersion, OnlineNodeVersion};
@@ -103,7 +119,7 @@ mod tests {
                 serde_json::from_str(test_data.borrow()).unwrap();
 
             assert_eq!(
-                NodeVersion::filter_major_versions(test_data),
+                NodeVersion::filter_default(test_data),
                 vec![
                     OnlineNodeVersion::new(
                         String::from("14.6.0"),

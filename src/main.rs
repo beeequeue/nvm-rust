@@ -4,7 +4,7 @@ use clap::{clap_app, crate_version};
 
 use config::Config;
 use std::num::ParseIntError;
-use subcommand::ls::Ls;
+use subcommand::{ls::Ls, Subcommand};
 
 mod config;
 mod node_version;
@@ -30,7 +30,7 @@ fn main() {
     ).get_matches();
 
     let result = match matches.subcommand_name() {
-        Some("ls") => Ls::init().run(matches.subcommand_matches("ls").unwrap()),
+        Some("ls") => Ls::run(matches.subcommand_matches("ls").unwrap()),
         _ => Result::Ok(()),
     };
 

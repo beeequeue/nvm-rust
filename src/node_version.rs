@@ -1,7 +1,7 @@
 use std::{borrow::Borrow, path::PathBuf};
 
 use reqwest::Url;
-use semver::{SemVerError, Version};
+use semver::{SemVerError, Version, VersionReq};
 use serde::Deserialize;
 
 use crate::CONFIG;
@@ -12,10 +12,12 @@ pub trait NodeVersion {
 }
 
 impl dyn NodeVersion {
-    pub fn filter_major_versions<V: NodeVersion>(versions: Vec<V>) -> Vec<V> {
+    // Filters out relevant major versions. Relevant meaning anything >=10
+    pub fn filter_default<V: NodeVersion>(versions: Vec<V>) -> Vec<V> {
+        let relevant_versions = VersionReq::parse(">=10").unwrap();
         let mut found_major_versions: HashSet<u64> = HashSet::new();
 
-        versions
+        let major_versions = versions
             .into_iter()
             .filter(|version| {
                 let version = version.version();
@@ -29,6 +31,18 @@ impl dyn NodeVersion {
 
                 true
             })
+            .collect();
+
+        Self::filter_version_req(major_versions, relevant_versions)
+    }
+
+    pub fn filter_version_req<V: NodeVersion>(
+        versions: Vec<V>,
+        version_range: VersionReq,
+    ) -> Vec<V> {
+        versions
+            .into_iter()
+            .filter(|version| version_range.matches(version.version().borrow()))
             .collect()
     }
 }
