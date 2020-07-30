@@ -37,8 +37,8 @@ fn main() {
     ).get_matches();
 
     let result = match matches.subcommand_name() {
-        Some("list") => List::run(matches.subcommand_matches("ls").unwrap()),
-        Some("install") => Install::run(matches.subcommand_matches("ls").unwrap()),
+        Some("list") => List::run(matches.subcommand_matches("list").unwrap()),
+        Some("install") => Install::run(matches.subcommand_matches("install").unwrap()),
         _ => Result::Ok(()),
     };
 

@@ -97,32 +97,30 @@ impl OnlineNodeVersion {
             .map_err(|_| format!("Could not create a valid download url. [{}]", url))
     }
 
-    /// Returns the correct file name based on OS
+    #[cfg(target_os = "windows")]
     fn get_file(&self) -> String {
-        let mut platform = "linux";
-        let mut arch = "x64";
-        let mut ext = ".tar.gz";
-
-        if cfg!(target_os = "windows") {
-            platform = "win";
-            ext = ".zip";
-
-            if cfg!(target_arch = "x86") {
-                arch = "x86";
-            }
-        }
-
-        if cfg!(target_os = "macos") {
-            platform = "darwin";
-        }
-
         format!(
-            "node-v{version}-{platform}-{arch}.{ext}",
-            version = self.version_str,
-            platform = platform,
-            arch = arch,
-            ext = ext,
+            "node-v{version}-win-{arch}.zip",
+            version = self.version(),
+            arch = if cfg!(target_arch = "x86") {
+                "x86"
+            } else {
+                "x64"
+            },
         )
+    }
+
+    #[cfg(target_os = "macos")]
+    fn get_file(&self) -> String {
+        format!(
+            "node-v{version}-darwin-x64.tar.gz",
+            version = self.version()
+        )
+    }
+
+    #[cfg(target_os = "linux")]
+    fn get_file(&self) -> String {
+        format!("node-v{version}-linux-x64.tar.gz", version = self.version())
     }
 
     #[cfg(test)]
