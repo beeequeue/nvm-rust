@@ -1,17 +1,20 @@
-use std::{borrow::Borrow, path::PathBuf};
+use std::{borrow::Borrow, collections::HashSet, path::PathBuf};
 
 use reqwest::Url;
 use semver::{SemVerError, Version, VersionReq};
 use serde::Deserialize;
 
 use crate::CONFIG;
-use std::collections::HashSet;
 
 pub trait NodeVersion {
     fn version(&self) -> Version;
 }
 
 impl dyn NodeVersion {
+    pub fn is_version_range(value: &str) -> Result<VersionReq, String> {
+        VersionReq::parse(value).map_err(|_| String::from("Invalid semver range."))
+    }
+
     // Filters out relevant major versions. Relevant meaning anything >=10
     pub fn filter_default<V: NodeVersion>(versions: Vec<V>) -> Vec<V> {
         let relevant_versions = VersionReq::parse(">=10").unwrap();

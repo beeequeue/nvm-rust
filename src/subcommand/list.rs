@@ -8,15 +8,9 @@ use crate::{
     subcommand::Subcommand,
 };
 
-pub struct Ls;
+pub struct List;
 
-impl Ls {
-    pub fn validate_filter(value: &str) -> Result<VersionReq, String> {
-        VersionReq::parse(value).map_err(|_| String::from("Invalid semver range."))
-    }
-}
-
-impl Subcommand for Ls {
+impl Subcommand for List {
     fn run(matches: &ArgMatches) -> Result<(), String> {
         let show_installed = !matches.is_present("online");
         let show_online = !matches.is_present("installed");
