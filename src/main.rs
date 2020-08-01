@@ -32,6 +32,7 @@ fn main() {
         (@subcommand install =>
             (alias: "i")
             (about: "Install a new node version")
+            (@arg force: -f --force "Install version even if it's already installed")
             (@arg version: +required {NodeVersion::is_version_range} "A semver range. The latest version matching this range will be installed.")
         )
     ).get_matches();

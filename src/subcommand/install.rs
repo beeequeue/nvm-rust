@@ -77,12 +77,14 @@ impl Install {
 impl Subcommand for Install {
     fn run(matches: &ArgMatches) -> Result<(), String> {
         let wanted_range = VersionReq::parse(matches.value_of("version").unwrap()).unwrap();
+        let force_install = matches.is_present("force");
+
         let online_versions = OnlineNodeVersion::fetch_all()?;
         let filtered_versions = NodeVersion::filter_version_req(online_versions, wanted_range);
         let latest_version: Option<&OnlineNodeVersion> = filtered_versions.first();
 
         if let Some(v) = latest_version {
-            if InstalledNodeVersion::is_installed(v.version().borrow()) {
+            if !force_install && InstalledNodeVersion::is_installed(v.version().borrow()) {
                 println!("{} is already installed - skipping...", v.version());
                 return Result::Ok(());
             }
