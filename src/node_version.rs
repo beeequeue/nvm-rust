@@ -151,6 +151,10 @@ impl InstalledNodeVersion {
         Self { version_str, path }
     }
 
+    pub fn is_installed(version: &Version) -> bool {
+        Self::get_all().iter().any(|v| v.version().eq(version))
+    }
+
     /// Returns all the installed, valid node versions in `Config.dir`
     pub fn get_all() -> Vec<InstalledNodeVersion> {
         let base_path = CONFIG.dir().clone();

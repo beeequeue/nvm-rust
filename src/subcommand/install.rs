@@ -13,11 +13,10 @@ use semver::VersionReq;
 use zip::ZipArchive;
 
 use crate::{
-    node_version::{NodeVersion, OnlineNodeVersion},
+    node_version::{InstalledNodeVersion, NodeVersion, OnlineNodeVersion},
     subcommand::Subcommand,
     CONFIG,
 };
-use std::io::Read;
 
 pub struct Install;
 
@@ -27,6 +26,8 @@ impl Install {
         let version_str = version.version().to_string();
         let reader = Cursor::new(bytes.bytes().unwrap());
         let mut archive = ZipArchive::new(reader).unwrap();
+
+        println!("Extracting...");
 
         for i in 0..archive.len() {
             let mut item = archive.by_index(i).unwrap();
@@ -47,7 +48,7 @@ impl Install {
                 path
             };
 
-            if item.is_dir() {
+            if item.is_dir() && !new_path.exists() {
                 create_dir_all(new_path.to_owned())
                     .expect(format!("Could not create new folder: {:?}", new_path).borrow());
             }
@@ -75,15 +76,18 @@ impl Install {
 
 impl Subcommand for Install {
     fn run(matches: &ArgMatches) -> Result<(), String> {
+        let wanted_range = VersionReq::parse(matches.value_of("version").unwrap()).unwrap();
         let online_versions = OnlineNodeVersion::fetch_all()?;
-        let filtered_versions = NodeVersion::filter_version_req(
-            online_versions,
-            VersionReq::parse(matches.value_of("version").unwrap()).unwrap(),
-        );
+        let filtered_versions = NodeVersion::filter_version_req(online_versions, wanted_range);
         let latest_version: Option<&OnlineNodeVersion> = filtered_versions.first();
 
         if let Some(v) = latest_version {
-            eprintln!("url = {:#?}", Install::download_and_extract_to(v.borrow()));
+            if InstalledNodeVersion::is_installed(v.version().borrow()) {
+                println!("{} is already installed - skipping...", v.version());
+                return Result::Ok(());
+            }
+
+            return Install::download_and_extract_to(v.borrow());
         }
 
         Result::Ok(())
