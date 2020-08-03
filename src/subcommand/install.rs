@@ -1,7 +1,6 @@
 use std::{
     borrow::Borrow,
-    fs::{create_dir_all, File},
-    io,
+    fs::{create_dir_all, remove_dir_all},
     io::{Cursor, Error},
     path::PathBuf,
 };
