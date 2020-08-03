@@ -1,1 +1,30 @@
+on: [push]
 
+name: CI
+
+jobs:
+  build_and_test:
+    name: Build {{ matrix.os }}
+
+    strategy:
+      matrix:
+        os: [macos-latest, ubuntu-latest, windows-latest]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly
+      - uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ matrix.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ matrix.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+            ${{ matrix.os }}-cargo-
+      - run: cargo build --release --all-features
