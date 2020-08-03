@@ -30,7 +30,7 @@ impl dyn NodeVersion {
                     return false;
                 }
 
-                found_major_versions.insert(major.clone());
+                found_major_versions.insert(major);
 
                 true
             })
@@ -74,13 +74,10 @@ pub struct OnlineNodeVersion {
 
 impl OnlineNodeVersion {
     pub fn fetch_all() -> Result<Vec<Self>, String> {
-        let response = reqwest::blocking::get("https://nodejs.org/dist/index.json");
+        let response = reqwest::blocking::get("https://nodejs.org/dist/index.json")
+            .map_err(|err| err.to_string())?;
 
-        if response.is_err() {
-            return Result::Err(response.unwrap_err().to_string());
-        }
-
-        let body = response.unwrap().text().unwrap();
+        let body = response.text().unwrap();
 
         serde_json::from_str(body.borrow()).map_err(|err| {
             println!("{}", err);
@@ -157,7 +154,7 @@ impl InstalledNodeVersion {
 
     /// Returns all the installed, valid node versions in `Config.dir`
     pub fn get_all() -> Vec<InstalledNodeVersion> {
-        let base_path = CONFIG.dir().clone();
+        let base_path = CONFIG.dir();
         let mut version_dirs: Vec<Version> = vec![];
 
         for entry in base_path.read_dir().unwrap() {
@@ -167,10 +164,10 @@ impl InstalledNodeVersion {
             }
 
             let entry = entry.unwrap();
-            let version = parse_version_str(String::from(entry.file_name().to_string_lossy()));
+            let result = parse_version_str(String::from(entry.file_name().to_string_lossy()));
 
-            if entry.metadata().unwrap().is_dir() && version.is_ok() {
-                version_dirs.push(version.unwrap());
+            if let Result::Ok(version) = result {
+                version_dirs.push(version);
             }
         }
 
@@ -194,10 +191,10 @@ impl InstalledNodeVersion {
 
     /// Checks that all the required files are present in the installation dir
     pub fn validate(&self) -> Result<(), String> {
-        let base_path = CONFIG.dir().clone();
+        let base_path = CONFIG.dir();
         let version_dir: PathBuf = [base_path.to_str().unwrap(), ""].iter().collect();
 
-        let mut required_files = vec![version_dir.clone(); 2];
+        let mut required_files = vec![version_dir; 2];
         required_files[0].set_file_name(format!("node{}", Self::get_ext()));
         required_files[1].set_file_name(format!("npm{}", Self::get_ext()));
 
