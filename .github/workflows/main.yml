@@ -4,7 +4,7 @@ name: CI
 
 jobs:
   build_and_test:
-    name: Build {{ matrix.os }}
+    name: Build
 
     strategy:
       matrix:
@@ -17,6 +17,7 @@ jobs:
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: nightly
+          default: true
       - uses: actions/cache@v2
         with:
           path: |
@@ -28,3 +29,23 @@ jobs:
             ${{ matrix.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
             ${{ matrix.os }}-cargo-
       - run: cargo build --release --all-features
+    
+  clippy:
+    name: Clippy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: nightly
+          override: true
+          components: rustfmt, clippy
+      - uses: actions-rs/cargo@v1
+        with:
+          command: fmt
+          args: --all -- --check
+      - uses: actions-rs/cargo@v1
+        with:
+          command: clippy
+          args: -- -D warnings
