@@ -49,12 +49,9 @@ impl<'c> Subcommand<'c> for List {
         let mut online_versions_str = String::new();
 
         if show_online {
-            let online_versions_result = OnlineNodeVersion::fetch_all();
             online_versions_str = String::from("Available for download:\n");
 
-            if online_versions_result.is_ok() {
-                let mut online_versions = online_versions_result.unwrap();
-
+            if let Result::Ok(mut online_versions) = OnlineNodeVersion::fetch_all() {
                 if filter.is_some() {
                     let limit = if !show_installed { 10 } else { 5 };
 
