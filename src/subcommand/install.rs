@@ -1,16 +1,16 @@
-use std::{
-    borrow::Borrow,
-    fs::{create_dir_all, File},
-    io,
-    io::{Cursor, Error},
-    path::PathBuf,
-};
+use std::{borrow::Borrow, fs::create_dir_all, io::Cursor, path::PathBuf};
 
 use clap::ArgMatches;
 #[cfg(unix)]
 use flate2::read::GzDecoder;
 use reqwest::blocking::Response;
 use semver::VersionReq;
+#[cfg(windows)]
+use std::fs::File;
+#[cfg(windows)]
+use std::io::copy;
+#[cfg(unix)]
+use std::{fs::remove_dir_all, io::Error};
 #[cfg(unix)]
 use tar::{Archive, Unpacked};
 #[cfg(target_os = "windows")]
@@ -53,14 +53,15 @@ impl Install {
             };
 
             if item.is_dir() && !new_path.exists() {
-                create_dir_all(new_path.to_owned())
-                    .expect(format!("Could not create new folder: {:?}", new_path).borrow());
+                create_dir_all(new_path.to_owned()).unwrap_or_else(|_| {
+                    panic!(format!("Could not create new folder: {:?}", new_path))
+                });
             }
 
             if item.is_file() {
                 let mut file = File::create(&*new_path).map_err(|err| err.to_string())?;
-                io::copy(&mut item, &mut file)
-                    .expect(format!("Couldn't write to {:?}", new_path).borrow());
+                copy(&mut item, &mut file)
+                    .unwrap_or_else(|_| panic!(format!("Couldn't write to {:?}", new_path)));
             }
         }
 
