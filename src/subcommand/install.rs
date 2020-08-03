@@ -1,15 +1,12 @@
-use std::{
-    borrow::Borrow,
-    fs::{create_dir_all, remove_dir_all},
-    io::{Cursor, Error},
-    path::PathBuf,
-};
+use std::{borrow::Borrow, fs::create_dir_all, io::Cursor, path::PathBuf};
 
 use clap::ArgMatches;
 #[cfg(unix)]
 use flate2::read::GzDecoder;
 use reqwest::blocking::Response;
 use semver::VersionReq;
+#[cfg(unix)]
+use std::{fs::remove_dir_all, io::Error};
 #[cfg(unix)]
 use tar::{Archive, Unpacked};
 #[cfg(target_os = "windows")]
