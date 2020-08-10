@@ -37,7 +37,6 @@ fn main() {
             (alias: "switch")
             (alias: "u")
             (about: "Switch to an installed node version")
-            (@arg force: -i --install "Installs version if it's not installed")
             (@arg version: {NodeVersion::is_version_range} "A semver range. The latest version matching this range will be installed.\nRespects `.nvmrc` files.")
         )
     );
