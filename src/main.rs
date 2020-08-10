@@ -6,7 +6,7 @@ use clap::{clap_app, crate_version};
 
 use config::Config;
 use node_version::NodeVersion;
-use subcommand::{install::Install, list::List, Subcommand};
+use subcommand::{install::Install, list::List, switch::Switch, Subcommand};
 
 mod config;
 mod node_version;
@@ -33,6 +33,13 @@ fn main() {
             (@arg force: -f --force "Install version even if it's already installed")
             (@arg version: +required {NodeVersion::is_version_range} "A semver range. The latest version matching this range will be installed.")
         )
+        (@subcommand use =>
+            (alias: "switch")
+            (alias: "u")
+            (about: "Switch to an installed node version")
+            (@arg force: -i --install "Installs version if it's not installed")
+            (@arg version: {NodeVersion::is_version_range} "A semver range. The latest version matching this range will be installed.\nRespects `.nvmrc` files.")
+        )
     );
 
     let config = Config::from_env_and_args(app.get_arguments());
@@ -45,6 +52,7 @@ fn main() {
     let result = match matches.subcommand_name() {
         Some("list") => List::run(&config, matches.subcommand_matches("list").unwrap()),
         Some("install") => Install::run(&config, matches.subcommand_matches("install").unwrap()),
+        Some("use") => Switch::run(&config, matches.subcommand_matches("use").unwrap()),
         _ => Result::Ok(()),
     };
 

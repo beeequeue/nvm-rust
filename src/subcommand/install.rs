@@ -144,7 +144,7 @@ impl<'c> Install<'c> {
 
 impl<'c> Subcommand<'c> for Install<'c> {
     fn run(config: &'c Config, matches: &ArgMatches) -> Result<(), String> {
-        let command = Self { config: &config };
+        let command = Self { config };
 
         let wanted_range = VersionReq::parse(matches.value_of("version").unwrap()).unwrap();
         let force_install = matches.is_present("force");
