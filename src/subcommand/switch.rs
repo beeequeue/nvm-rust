@@ -2,6 +2,8 @@ use std::borrow::Borrow;
 #[cfg(windows)]
 use std::fs::remove_dir;
 #[cfg(unix)]
+use std::fs::remove_file;
+#[cfg(unix)]
 use std::os::unix::fs::symlink;
 #[cfg(windows)]
 use std::os::windows::fs::symlink_dir;
@@ -25,7 +27,7 @@ impl<'c> Switch<'c> {
         }
 
         if shims_dir.exists() {
-            if let Result::Err(err) = remove_dir(shims_dir.clone()) {
+            if let Result::Err(err) = remove_dir(shims_dir.to_owned()) {
                 return Result::Err(format!(
                     "Could not remove old symlink at {:?}: {}",
                     shims_dir,
@@ -36,6 +38,23 @@ impl<'c> Switch<'c> {
 
         symlink_dir(self.config.dir.join(version.to_string()), shims_dir)
             .map_err(|err| err.to_string())
+    }
+
+    #[cfg(unix)]
+    fn set_shims(version: &Version) -> Result<(), String> {
+        let shims_dir = CONFIG.shims_dir();
+
+        if shims_dir.exists() {
+            if let Result::Err(err) = remove_file(shims_dir.to_owned()) {
+                return Result::Err(format!(
+                    "Could not remove old symlink at {:?}: {}",
+                    shims_dir,
+                    err.to_string()
+                ));
+            }
+        }
+
+        symlink(CONFIG.dir().join(version.to_string()), shims_dir).map_err(|err| err.to_string())
     }
 }
 
@@ -58,6 +77,10 @@ impl<'c> Subcommand<'c> for Switch<'c> {
         }
 
         if let Some(version) = InstalledNodeVersion::get_matching(config, range.unwrap().borrow()) {
+            if !InstalledNodeVersion::is_installed(config, version.borrow()) {
+                return Result::Err(format!("{} is not installed", version));
+            }
+
             return command.set_shims(version.borrow());
         }
 

@@ -83,6 +83,8 @@ impl<'c> Install<'c> {
         version_dir_path.push(version_str.to_owned());
         create_dir_all(version_dir_path.to_owned()).expect("fuck");
 
+        println!("Extracting...");
+
         let result = archive
             .entries()
             .map_err(|err| err.to_string())?
