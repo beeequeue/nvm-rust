@@ -20,6 +20,7 @@ fn main() {
     let app = clap_app!("nvm(-rust)" =>
         (version: crate_version!())
         (about: "Node Version Manager (but in Rust)")
+        (@arg verbose: -V --verbose "Print debugging information")
         (@subcommand list =>
             (alias: "ls")
             (about: "List installed and released node versions")
@@ -46,6 +47,14 @@ fn main() {
 
     if matches.is_present("verbose") {
         println!("\n\nconfig:\n{:?}\n\n", config);
+    }
+
+    if matches.is_present("verbose") {
+        println!(
+            "nvm dir:   {:?}\nshims dir: {:?}",
+            CONFIG.dir(),
+            CONFIG.shims_dir()
+        );
     }
 
     let result = match matches.subcommand_name() {
