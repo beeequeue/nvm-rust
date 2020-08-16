@@ -37,22 +37,19 @@ fn main() {
 
     let config = Config::from_env_and_args(app.get_arguments());
     let matches = app.get_matches();
+
+    if matches.is_present("verbose") {
+        println!("\n\nconfig:\n{:?}\n\n", config);
+    }
+
     let result = match matches.subcommand_name() {
-        Some("list") => List::run(matches.subcommand_matches("list").unwrap()),
-        Some("install") => Install::run(matches.subcommand_matches("install").unwrap()),
+        Some("list") => List::run(&config, matches.subcommand_matches("list").unwrap()),
+        Some("install") => Install::run(&config, matches.subcommand_matches("install").unwrap()),
         _ => Result::Ok(()),
     };
 
-    println!(
-        "{}",
-        if result.is_err() {
-            result.clone().unwrap_err()
-        } else {
-            String::from("OK")
-        }
-    );
-
     if result.is_err() {
-        exit(1)
+        println!("{}", result.unwrap_err());
+        exit(1);
     }
 }
