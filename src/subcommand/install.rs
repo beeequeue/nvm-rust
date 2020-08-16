@@ -17,16 +17,18 @@ use tar::{Archive, Unpacked};
 use zip::ZipArchive;
 
 use crate::{
+    config::Config,
     node_version::{InstalledNodeVersion, NodeVersion, OnlineNodeVersion},
     subcommand::Subcommand,
-    CONFIG,
 };
 
-pub struct Install;
+pub struct Install<'c> {
+    config: &'c Config,
+}
 
-impl Install {
+impl<'c> Install<'c> {
     #[cfg(target_os = "windows")]
-    fn extract_archive(bytes: Response, version: &OnlineNodeVersion) -> Result<(), String> {
+    fn extract_archive(self, bytes: Response, version: &OnlineNodeVersion) -> Result<(), String> {
         let version_str = version.version().to_string();
         let reader = Cursor::new(bytes.bytes().unwrap());
         let mut archive = ZipArchive::new(reader).unwrap();
@@ -39,14 +41,14 @@ impl Install {
             let file_path = file_path.to_string_lossy();
 
             let new_path: PathBuf = if let Some(index) = file_path.find('\\') {
-                let mut path = CONFIG.dir().clone();
+                let mut path = self.config.dir().clone();
                 path.push(version_str.clone());
                 path.push(file_path[index + 1..].to_owned());
 
                 path
             } else {
                 // This happens if it's the root index, the base folder
-                let mut path = CONFIG.dir().clone();
+                let mut path = self.config.dir().clone();
                 path.push(version_str.clone());
 
                 path
@@ -69,9 +71,9 @@ impl Install {
     }
 
     #[cfg(unix)]
-    fn extract_archive(bytes: Response, version: &OnlineNodeVersion) -> Result<(), String> {
+    fn extract_archive(self, bytes: Response, version: &OnlineNodeVersion) -> Result<(), String> {
         let version_str = version.version().to_string();
-        let base_path = CONFIG.dir();
+        let base_path = self.config.dir();
 
         let reader = Cursor::new(bytes.bytes().unwrap());
         let tar = GzDecoder::new(reader);
@@ -129,19 +131,21 @@ impl Install {
         Result::Ok(())
     }
 
-    pub fn download_and_extract_to(version: &OnlineNodeVersion) -> Result<(), String> {
+    pub fn download_and_extract_to(self, version: &OnlineNodeVersion) -> Result<(), String> {
         let url = version.download_url().unwrap();
 
         println!("Downloading from {}...", url);
         let response = reqwest::blocking::get(url)
             .map_err(|err| format!("Failed to download version: {}", err))?;
 
-        Self::extract_archive(response, version)
+        self.extract_archive(response, version)
     }
 }
 
-impl Subcommand for Install {
-    fn run(matches: &ArgMatches) -> Result<(), String> {
+impl<'c> Subcommand<'c> for Install<'c> {
+    fn run(config: &'c Config, matches: &ArgMatches) -> Result<(), String> {
+        let command = Self { config: &config };
+
         let wanted_range = VersionReq::parse(matches.value_of("version").unwrap()).unwrap();
         let force_install = matches.is_present("force");
 
@@ -150,12 +154,12 @@ impl Subcommand for Install {
         let latest_version: Option<&OnlineNodeVersion> = filtered_versions.first();
 
         if let Some(v) = latest_version {
-            if !force_install && InstalledNodeVersion::is_installed(v.version().borrow()) {
+            if !force_install && InstalledNodeVersion::is_installed(config, v.version().borrow()) {
                 println!("{} is already installed - skipping...", v.version());
                 return Result::Ok(());
             }
 
-            return Install::download_and_extract_to(v.borrow());
+            return command.download_and_extract_to(v.borrow());
         }
 
         Result::Ok(())

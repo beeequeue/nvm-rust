@@ -1,10 +1,9 @@
 use std::{borrow::Borrow, collections::HashSet, path::PathBuf};
 
+use crate::config::Config;
 use reqwest::Url;
 use semver::{SemVerError, Version, VersionReq};
 use serde::Deserialize;
-
-use crate::CONFIG;
 
 pub trait NodeVersion {
     fn version(&self) -> Version;
@@ -148,13 +147,15 @@ impl InstalledNodeVersion {
         Self { version_str, path }
     }
 
-    pub fn is_installed(version: &Version) -> bool {
-        Self::get_all().iter().any(|v| v.version().eq(version))
+    pub fn is_installed(config: &Config, version: &Version) -> bool {
+        Self::get_all(config)
+            .iter()
+            .any(|v| v.version().eq(version))
     }
 
     /// Returns all the installed, valid node versions in `Config.dir`
-    pub fn get_all() -> Vec<InstalledNodeVersion> {
-        let base_path = CONFIG.dir();
+    pub fn get_all(config: &Config) -> Vec<InstalledNodeVersion> {
+        let base_path = config.dir();
         let mut version_dirs: Vec<Version> = vec![];
 
         for entry in base_path.read_dir().unwrap() {
@@ -189,9 +190,17 @@ impl InstalledNodeVersion {
             .collect()
     }
 
+    /// Returns the latest, installed version matching the version range
+    pub fn get_matching(config: &Config, range: &VersionReq) -> Option<Version> {
+        Self::get_all(config)
+            .iter()
+            .find(|inv| range.matches(inv.version().borrow()))
+            .map(|inv| inv.version())
+    }
+
     /// Checks that all the required files are present in the installation dir
-    pub fn validate(&self) -> Result<(), String> {
-        let base_path = CONFIG.dir();
+    pub fn validate(&self, config: &Config) -> Result<(), String> {
+        let base_path = config.dir();
         let version_dir: PathBuf = [base_path.to_str().unwrap(), ""].iter().collect();
 
         let mut required_files = vec![version_dir; 2];

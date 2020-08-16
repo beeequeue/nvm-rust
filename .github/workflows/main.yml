@@ -5,6 +5,7 @@ name: CI
 jobs:
   build_and_test:
     name: Build
+    continue-on-error: true
 
     strategy:
       matrix:

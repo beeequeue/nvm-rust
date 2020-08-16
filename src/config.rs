@@ -1,41 +1,62 @@
-use std::{fs::create_dir_all, path::PathBuf};
+use std::{
+    borrow::Borrow,
+    env,
+    fs::{canonicalize, create_dir_all},
+    path::PathBuf,
+};
 
-#[derive(Copy, Clone)]
+use clap::Arg;
+
+#[derive(Debug)]
 pub struct Config {
-    dir: Option<&'static str>,
+    pub dir: PathBuf,
+    pub shims_dir: PathBuf,
 }
 
 impl Config {
-    pub const fn new() -> Self {
+    pub fn from_env_and_args(_args: &[Arg]) -> Self {
+        let dir = env::var("NVM_DIR").ok();
+        let dir = PathBuf::from(dir.unwrap_or_else(|| Self::get_default_dir().to_string()));
+        let dir = canonicalize(dir).expect("Could not resolve nvm dir path");
+
+        Self::ensure_dir_exists(dir.borrow());
+
         Config {
-            dir: option_env!("NVM_DIR"),
+            shims_dir: dir.join("shims"),
+            dir,
         }
     }
 
-    pub fn dir(self) -> PathBuf {
-        let path = PathBuf::from(self.dir.unwrap_or(Self::get_default_dir()));
-
+    fn ensure_dir_exists(path: &PathBuf) {
         if !path.exists() {
             create_dir_all(path.clone())
                 .unwrap_or_else(|err| panic!("Could not create {:?} - {}", path, err));
         }
 
         if !path.is_dir() {
-            panic!("{:?} is not a directory! Please rename it!", path)
+            panic!("{:?} is not a directory! Please rename it.", path)
         }
-
-        path
     }
 
-    fn get_default_dir() -> &'static str {
-        if cfg!(windows) {
-            if cfg!(target_arch = "x86") {
-                return "C:\\Program Files (x86)\\nvm";
-            }
+    pub fn dir(&self) -> PathBuf {
+        self.dir.clone()
+    }
 
-            return "C:\\Program Files\\nvm";
+    pub fn shims_dir(&self) -> PathBuf {
+        self.shims_dir.clone()
+    }
+
+    #[cfg(windows)]
+    fn get_default_dir() -> &'static str {
+        if cfg!(target_arch = "x86") {
+            return "C:\\Program Files (x86)\\nvm";
         }
 
+        "C:\\Program Files\\nvm"
+    }
+
+    #[cfg(unix)]
+    fn get_default_dir() -> &'static str {
         "$HOME/.nvm"
     }
 }

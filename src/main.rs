@@ -12,14 +12,12 @@ mod config;
 mod node_version;
 mod subcommand;
 
-static CONFIG: Config = Config::new();
-
 fn validate_number(value: &str) -> Result<i32, String> {
     value.parse().map_err(|err: ParseIntError| err.to_string())
 }
 
 fn main() {
-    let matches = clap_app!("nvm(-rust)" =>
+    let app = clap_app!("nvm(-rust)" =>
         (version: crate_version!())
         (about: "Node Version Manager (but in Rust)")
         (@subcommand list =>
@@ -35,24 +33,23 @@ fn main() {
             (@arg force: -f --force "Install version even if it's already installed")
             (@arg version: +required {NodeVersion::is_version_range} "A semver range. The latest version matching this range will be installed.")
         )
-    ).get_matches();
+    );
+
+    let config = Config::from_env_and_args(app.get_arguments());
+    let matches = app.get_matches();
+
+    if matches.is_present("verbose") {
+        println!("\n\nconfig:\n{:?}\n\n", config);
+    }
 
     let result = match matches.subcommand_name() {
-        Some("list") => List::run(matches.subcommand_matches("list").unwrap()),
-        Some("install") => Install::run(matches.subcommand_matches("install").unwrap()),
+        Some("list") => List::run(&config, matches.subcommand_matches("list").unwrap()),
+        Some("install") => Install::run(&config, matches.subcommand_matches("install").unwrap()),
         _ => Result::Ok(()),
     };
 
-    println!(
-        "{}",
-        if result.is_err() {
-            result.clone().unwrap_err()
-        } else {
-            String::from("OK")
-        }
-    );
-
     if result.is_err() {
-        exit(1)
+        println!("{}", result.unwrap_err());
+        exit(1);
     }
 }

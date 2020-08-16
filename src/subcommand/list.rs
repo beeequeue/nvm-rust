@@ -4,14 +4,15 @@ use clap::ArgMatches;
 use semver::VersionReq;
 
 use crate::{
+    config::Config,
     node_version::{InstalledNodeVersion, NodeVersion, OnlineNodeVersion},
     subcommand::Subcommand,
 };
 
 pub struct List;
 
-impl Subcommand for List {
-    fn run(matches: &ArgMatches) -> Result<(), String> {
+impl<'c> Subcommand<'c> for List {
+    fn run(config: &Config, matches: &ArgMatches) -> Result<(), String> {
         let show_installed = !matches.is_present("online");
         let show_online = !matches.is_present("installed");
 
@@ -19,7 +20,7 @@ impl Subcommand for List {
             .value_of("filter")
             .map(|version_str| VersionReq::parse(version_str).unwrap());
 
-        let mut installed_versions = InstalledNodeVersion::get_all();
+        let mut installed_versions = InstalledNodeVersion::get_all(config);
         if filter.is_some() {
             installed_versions =
                 NodeVersion::filter_version_req(installed_versions, filter.to_owned().unwrap());
@@ -48,12 +49,9 @@ impl Subcommand for List {
         let mut online_versions_str = String::new();
 
         if show_online {
-            let online_versions_result = OnlineNodeVersion::fetch_all();
             online_versions_str = String::from("Available for download:\n");
 
-            if online_versions_result.is_ok() {
-                let mut online_versions = online_versions_result.unwrap();
-
+            if let Result::Ok(mut online_versions) = OnlineNodeVersion::fetch_all() {
                 if filter.is_some() {
                     let limit = if !show_installed { 10 } else { 5 };
 
