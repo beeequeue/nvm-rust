@@ -1,12 +1,14 @@
 use std::{fs::create_dir_all, path::PathBuf};
 
+use clap::Arg;
+
 #[derive(Copy, Clone)]
 pub struct Config {
     dir: Option<&'static str>,
 }
 
 impl Config {
-    pub const fn new() -> Self {
+    pub fn from_env_and_args(_args: &[Arg]) -> Self {
         Config {
             dir: option_env!("NVM_DIR"),
         }
@@ -27,15 +29,17 @@ impl Config {
         path
     }
 
+    #[cfg(windows)]
     fn get_default_dir() -> &'static str {
-        if cfg!(windows) {
-            if cfg!(target_arch = "x86") {
-                return "C:\\Program Files (x86)\\nvm";
-            }
-
-            return "C:\\Program Files\\nvm";
+        if cfg!(target_arch = "x86") {
+            return "C:\\Program Files (x86)\\nvm";
         }
 
+        "C:\\Program Files\\nvm"
+    }
+
+    #[cfg(unix)]
+    fn get_default_dir() -> &'static str {
         "$HOME/.nvm"
     }
 }
