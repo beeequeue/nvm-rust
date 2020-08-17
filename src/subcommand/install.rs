@@ -41,14 +41,14 @@ impl<'c> Install<'c> {
             let file_path = file_path.to_string_lossy();
 
             let new_path: PathBuf = if let Some(index) = file_path.find('\\') {
-                let mut path = self.config.dir().clone();
+                let mut path = self.config.dir.to_owned();
                 path.push(version_str.clone());
                 path.push(file_path[index + 1..].to_owned());
 
                 path
             } else {
                 // This happens if it's the root index, the base folder
-                let mut path = self.config.dir().clone();
+                let mut path = self.config.dir.to_owned();
                 path.push(version_str.clone());
 
                 path
@@ -73,7 +73,7 @@ impl<'c> Install<'c> {
     #[cfg(unix)]
     fn extract_archive(self, bytes: Response, version: &OnlineNodeVersion) -> Result<(), String> {
         let version_str = version.version().to_string();
-        let base_path = self.config.dir();
+        let base_path = self.config.dir.to_owned();
 
         let reader = Cursor::new(bytes.bytes().unwrap());
         let tar = GzDecoder::new(reader);

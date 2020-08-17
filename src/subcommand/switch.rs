@@ -20,7 +20,7 @@ pub struct Switch<'c> {
 impl<'c> Switch<'c> {
     #[cfg(windows)]
     fn set_shims(self, version: &Version) -> Result<(), String> {
-        let shims_dir = self.config.shims_dir();
+        let shims_dir = self.config.shims_dir.to_owned();
 
         if !InstalledNodeVersion::is_installed(self.config, version) {
             return Result::Err(format!("{} is not installed", version));
@@ -41,8 +41,8 @@ impl<'c> Switch<'c> {
     }
 
     #[cfg(unix)]
-    fn set_shims(version: &Version) -> Result<(), String> {
-        let shims_dir = CONFIG.shims_dir();
+    fn set_shims(self, version: &Version) -> Result<(), String> {
+        let shims_dir = self.config.shims_dir.to_owned();
 
         if shims_dir.exists() {
             if let Result::Err(err) = remove_file(shims_dir.to_owned()) {
@@ -54,7 +54,7 @@ impl<'c> Switch<'c> {
             }
         }
 
-        symlink(CONFIG.dir().join(version.to_string()), shims_dir).map_err(|err| err.to_string())
+        symlink(self.config.dir.join(version.to_string()), shims_dir).map_err(|err| err.to_string())
     }
 }
 

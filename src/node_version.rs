@@ -155,7 +155,7 @@ impl InstalledNodeVersion {
 
     /// Returns all the installed, valid node versions in `Config.dir`
     pub fn get_all(config: &Config) -> Vec<InstalledNodeVersion> {
-        let base_path = config.dir();
+        let base_path = config.dir.to_owned();
         let mut version_dirs: Vec<Version> = vec![];
 
         for entry in base_path.read_dir().unwrap() {
@@ -200,7 +200,7 @@ impl InstalledNodeVersion {
 
     /// Checks that all the required files are present in the installation dir
     pub fn validate(&self, config: &Config) -> Result<(), String> {
-        let base_path = config.dir();
+        let base_path = config.dir.to_owned();
         let version_dir: PathBuf = [base_path.to_str().unwrap(), ""].iter().collect();
 
         let mut required_files = vec![version_dir; 2];

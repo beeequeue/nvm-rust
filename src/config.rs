@@ -38,14 +38,6 @@ impl Config {
         }
     }
 
-    pub fn dir(&self) -> PathBuf {
-        self.dir.clone()
-    }
-
-    pub fn shims_dir(&self) -> PathBuf {
-        self.shims_dir.clone()
-    }
-
     #[cfg(windows)]
     fn get_default_dir() -> &'static str {
         if cfg!(target_arch = "x86") {
