@@ -81,7 +81,12 @@ impl<'c> Subcommand<'c> for Switch<'c> {
                 return Result::Err(format!("{} is not installed", version));
             }
 
-            return command.set_shims(version.borrow());
+            let result = command.set_shims(version.borrow());
+            if let Result::Ok(()) = result {
+                println!("Switched to {}", version);
+            }
+
+            return result;
         }
 
         Result::Err(String::from(
