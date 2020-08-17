@@ -49,14 +49,6 @@ fn main() {
         println!("\n\nconfig:\n{:?}\n\n", config);
     }
 
-    if matches.is_present("verbose") {
-        println!(
-            "nvm dir:   {:?}\nshims dir: {:?}",
-            CONFIG.dir(),
-            CONFIG.shims_dir()
-        );
-    }
-
     let result = match matches.subcommand_name() {
         Some("list") => List::run(&config, matches.subcommand_matches("list").unwrap()),
         Some("install") => Install::run(&config, matches.subcommand_matches("install").unwrap()),
