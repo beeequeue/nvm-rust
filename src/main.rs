@@ -46,7 +46,7 @@ fn main() {
     let matches = app.get_matches();
 
     if matches.is_present("verbose") {
-        println!("\n\nconfig:\n{:?}\n\n", config);
+        println!("{:#?}\n", config);
     }
 
     let result = match matches.subcommand_name() {
