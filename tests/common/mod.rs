@@ -4,6 +4,8 @@ use std::{
     path::PathBuf,
 };
 
+use anyhow::Result;
+
 pub const INTEGRATION_DIR: &str = "./integration";
 
 pub fn integration_dir() -> PathBuf {
@@ -14,7 +16,7 @@ pub fn required_files<'a>() -> [&'a str; 4] {
     ["node", "node.cmd", "npm", "npm.cmd"]
 }
 
-pub fn setup_integration_test() -> Result<(), anyhow::Error> {
+pub fn setup_integration_test() -> Result<()> {
     set_var("NVM_DIR", INTEGRATION_DIR);
 
     let path = integration_dir();
@@ -26,7 +28,7 @@ pub fn setup_integration_test() -> Result<(), anyhow::Error> {
     Result::Ok(())
 }
 
-pub fn install_mock_version(version_str: &str) -> Result<(), anyhow::Error> {
+pub fn install_mock_version(version_str: &str) -> Result<()> {
     let test_data_dir = PathBuf::from("test-data")
         .join("versions")
         .join(version_str);
@@ -51,7 +53,7 @@ pub fn install_mock_version(version_str: &str) -> Result<(), anyhow::Error> {
     Result::Ok(())
 }
 
-pub fn assert_version_installed(version_str: &str) -> Result<(), anyhow::Error> {
+pub fn assert_version_installed(version_str: &str) -> Result<()> {
     let path = integration_dir();
 
     for filename in required_files().iter() {

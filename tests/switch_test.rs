@@ -1,6 +1,7 @@
 mod common;
 
 mod switch {
+    use anyhow::Result;
     use assert_cmd::Command;
     use serial_test::serial;
 
@@ -8,7 +9,7 @@ mod switch {
 
     #[test]
     #[serial]
-    fn can_switch_version_with_no_previous_one() -> Result<(), anyhow::Error> {
+    fn can_switch_version_with_no_previous_one() -> Result<()> {
         let version_str = "12.18.3";
         common::setup_integration_test()?;
         common::install_mock_version(version_str)?;

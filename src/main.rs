@@ -1,7 +1,6 @@
 #![feature(const_fn)]
 
-use std::{num::ParseIntError, process::exit};
-
+use anyhow::{Context, Result};
 use clap::{clap_app, crate_version};
 
 use config::Config;
@@ -12,11 +11,11 @@ mod config;
 mod node_version;
 mod subcommand;
 
-fn validate_number(value: &str) -> Result<i32, String> {
-    value.parse().map_err(|err: ParseIntError| err.to_string())
+fn validate_number(value: &str) -> Result<i32> {
+    value.parse().context(format!("{} is not a number!", value))
 }
 
-fn main() {
+fn main() -> Result<()> {
     let app = clap_app!("nvm(-rust)" =>
         (version: crate_version!())
         (about: "Node Version Manager (but in Rust)")
@@ -56,8 +55,5 @@ fn main() {
         _ => Result::Ok(()),
     };
 
-    if result.is_err() {
-        println!("{}", result.unwrap_err());
-        exit(1);
-    }
+    result
 }
