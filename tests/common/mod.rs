@@ -4,7 +4,8 @@ use std::{
     path::PathBuf,
 };
 
-use anyhow::Result;
+use anyhow::{Context, Result};
+use std::fs::remove_dir_all;
 
 pub const INTEGRATION_DIR: &str = "./integration";
 
@@ -16,13 +17,29 @@ pub fn required_files<'a>() -> [&'a str; 4] {
     ["node", "node.cmd", "npm", "npm.cmd"]
 }
 
+fn ensure_dir_exists(path: &PathBuf) -> Result<()> {
+    if !path.exists() {
+        create_dir_all(path).context(format!("Could not create {:?}", path))?
+    }
+
+    Result::Ok(())
+}
+
 pub fn setup_integration_test() -> Result<()> {
     set_var("NVM_DIR", INTEGRATION_DIR);
 
     let path = integration_dir();
+    ensure_dir_exists(&path)?;
+
     for entry in read_dir(path.to_owned())? {
         let name = entry?.file_name();
-        remove_file(path.join(name))?
+        let entry_path = path.join(name.to_owned());
+
+        if entry_path.is_dir() || name == "shims" {
+            remove_dir_all(entry_path)?
+        } else {
+            remove_file(entry_path)?
+        }
     }
 
     Result::Ok(())
@@ -58,7 +75,7 @@ pub fn assert_version_installed(version_str: &str) -> Result<()> {
 
     for filename in required_files().iter() {
         let file_path = path.join(version_str).join(filename);
-        eprintln!("file_path = {:#?}", file_path);
+
         assert!(file_path.exists(), "{:#?} was not created", file_path);
     }
 

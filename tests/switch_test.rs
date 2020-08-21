@@ -18,14 +18,11 @@ mod switch {
 
         let result = cmd.arg("use").arg("12").assert();
 
-        let output = result.get_output();
-
-        println!(
-            "{}",
-            String::from_utf8(output.stdout.clone()).unwrap().trim()
-        );
+        let output = String::from_utf8(result.get_output().to_owned().stdout)?;
+        let output = output.trim();
 
         assert_version_installed(version_str)?;
+        assert_eq!(output, "Switched to 12.18.3");
 
         Result::Ok(())
     }
