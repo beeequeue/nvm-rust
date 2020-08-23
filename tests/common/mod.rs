@@ -1,3 +1,5 @@
+#[cfg(unix)]
+use std::os::unix::fs::symlink;
 #[cfg(windows)]
 use std::os::windows::fs::symlink_dir;
 use std::{
@@ -76,6 +78,15 @@ pub fn install_mock_version(version_str: &str) -> Result<()> {
 #[cfg(windows)]
 pub fn create_shim(version_str: &str) -> Result<()> {
     symlink_dir(
+        integration_dir().join(version_str),
+        integration_dir().join("shims"),
+    )
+    .map_err(anyhow::Error::from)
+}
+
+#[cfg(unix)]
+pub fn create_shim(version_str: &str) -> Result<()> {
+    symlink(
         integration_dir().join(version_str),
         integration_dir().join("shims"),
     )
