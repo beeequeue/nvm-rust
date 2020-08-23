@@ -1,16 +1,20 @@
+#[cfg(windows)]
+use std::os::windows::fs::symlink_dir;
 use std::{
     env::set_var,
-    fs::{canonicalize, copy, create_dir_all, read_dir, remove_file},
+    fs::{canonicalize, copy, create_dir_all, read_dir, remove_dir_all, remove_file},
     path::PathBuf,
 };
 
 use anyhow::{Context, Result};
-use std::fs::remove_dir_all;
-
-pub const INTEGRATION_DIR: &str = "./integration";
+use assert_cmd::assert::Assert;
 
 pub fn integration_dir() -> PathBuf {
-    PathBuf::from(INTEGRATION_DIR)
+    let path = PathBuf::from("./integration");
+
+    ensure_dir_exists(&path).expect("integration dir exists");
+
+    canonicalize(path).expect("canonicalize integration dir path")
 }
 
 pub fn required_files<'a>() -> [&'a str; 4] {
@@ -26,10 +30,9 @@ fn ensure_dir_exists(path: &PathBuf) -> Result<()> {
 }
 
 pub fn setup_integration_test() -> Result<()> {
-    set_var("NVM_DIR", INTEGRATION_DIR);
+    set_var("NVM_DIR", integration_dir());
 
     let path = integration_dir();
-    ensure_dir_exists(&path)?;
 
     for entry in read_dir(path.to_owned())? {
         let name = entry?.file_name();
@@ -58,13 +61,57 @@ pub fn install_mock_version(version_str: &str) -> Result<()> {
         );
     }
 
-    let to_dir = PathBuf::from(INTEGRATION_DIR).join(version_str);
+    let to_dir = integration_dir().join(version_str);
     create_dir_all(to_dir.to_owned())?;
 
     for entry in read_dir(test_data_dir.to_owned())? {
         let name = entry?.file_name();
 
         copy(test_data_dir.join(name.to_owned()), to_dir.join(name))?;
+    }
+
+    Result::Ok(())
+}
+
+#[cfg(windows)]
+pub fn create_shim(version_str: &str) -> Result<()> {
+    symlink_dir(
+        integration_dir().join(version_str),
+        integration_dir().join("shims"),
+    )
+    .map_err(anyhow::Error::from)
+}
+
+#[derive(PartialEq, Eq)]
+struct OutputResult(bool, bool);
+
+pub fn assert_outputs(result: &Assert, stdout: &str, stderr: &str) -> Result<()> {
+    let output = result.get_output().to_owned();
+    let output_stderr = String::from_utf8(output.stderr)?;
+    let output_stdout = String::from_utf8(output.stdout)?;
+    let result = OutputResult(
+        output_stdout.trim() == stdout,
+        output_stderr.trim() == stderr,
+    );
+
+    if result != OutputResult(true, true) {
+        panic!(
+            r#"Got incorrect command output:
+stdout expected:
+"{}"
+stdout output:
+"{}"
+
+stderr expected:
+"{}"
+stderr output:
+"{}"
+"#,
+            stdout,
+            output_stdout.trim(),
+            stderr,
+            output_stderr.trim()
+        )
     }
 
     Result::Ok(())

@@ -1,6 +1,6 @@
 use std::{borrow::Borrow, collections::HashSet, path::PathBuf};
 
-use anyhow::{Context, Error, Result};
+use anyhow::{Context, Result};
 use reqwest::Url;
 use semver::{Version, VersionReq};
 use serde::Deserialize;
@@ -141,10 +141,6 @@ pub struct InstalledNodeVersion {
 }
 
 impl InstalledNodeVersion {
-    pub fn new(version_str: String, path: PathBuf) -> Self {
-        Self { version_str, path }
-    }
-
     pub fn is_installed(config: &Config, version: &Version) -> bool {
         Self::get_all(config)
             .iter()
@@ -217,7 +213,7 @@ impl InstalledNodeVersion {
     }
 
     fn get_ext() -> String {
-        String::from(if cfg!(windows) { ".exe" } else { "" })
+        String::from(if cfg!(windows) { ".cmd" } else { "" })
     }
 }
 
