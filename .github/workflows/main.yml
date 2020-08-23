@@ -29,7 +29,8 @@ jobs:
           restore-keys: |
             ${{ matrix.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
             ${{ matrix.os }}-cargo-
-      - run: cargo build --release --all-features
+      - run: cargo build --release --all-features --locked
+      - run: cargo test
     
   clippy:
     name: Clippy
