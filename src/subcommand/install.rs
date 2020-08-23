@@ -88,7 +88,7 @@ impl<'c> Install<'c> {
 
         let result = archive
             .entries()
-            .map_err(|err| err.to_string())?
+            .map_err(anyhow::Error::from)?
             .filter_map(|e| e.ok())
             .map(|mut entry| -> Result<Unpacked> {
                 let file_path = entry.path()?.to_owned();
@@ -109,10 +109,10 @@ impl<'c> Install<'c> {
                 };
 
                 entry.set_preserve_permissions(false);
-                entry.unpack(&new_path)
+                entry.unpack(&new_path).map_err(anyhow::Error::from)
             });
 
-        let errors: Vec<Error> = result
+        let errors: Vec<anyhow::Error> = result
             .into_iter()
             .filter(|result| result.is_err())
             .map(|result| result.unwrap_err())

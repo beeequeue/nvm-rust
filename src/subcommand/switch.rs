@@ -47,15 +47,15 @@ impl<'c> Switch<'c> {
 
         if shims_dir.exists() {
             if let Result::Err(err) = remove_file(shims_dir.to_owned()) {
-                return Result::Err(format!(
+                anyhow::bail!(
                     "Could not remove old symlink at {:?}: {}",
                     shims_dir,
                     err.to_string()
-                ));
+                );
             }
         }
 
-        symlink(self.config.dir.join(version.to_string()), shims_dir).map_err(|err| err.to_string())
+        symlink(self.config.dir.join(version.to_string()), shims_dir).map_err(anyhow::Error::from)
     }
 }
 
