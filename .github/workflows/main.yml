@@ -4,7 +4,7 @@ name: CI
 
 jobs:
   build_and_test:
-    name: Build
+    name: Build and Test
     continue-on-error: true
 
     strategy:
@@ -29,7 +29,8 @@ jobs:
           restore-keys: |
             ${{ matrix.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
             ${{ matrix.os }}-cargo-
-      - run: cargo build --release --all-features
+      - run: cargo build --release --all-features --locked
+      - run: cargo test --release --all-features
     
   clippy:
     name: Clippy

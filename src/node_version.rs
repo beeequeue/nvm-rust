@@ -1,17 +1,19 @@
 use std::{borrow::Borrow, collections::HashSet, path::PathBuf};
 
-use crate::config::Config;
+use anyhow::{Context, Result};
 use reqwest::Url;
-use semver::{SemVerError, Version, VersionReq};
+use semver::{Version, VersionReq};
 use serde::Deserialize;
+
+use crate::config::Config;
 
 pub trait NodeVersion {
     fn version(&self) -> Version;
 }
 
 impl dyn NodeVersion {
-    pub fn is_version_range(value: &str) -> Result<VersionReq, String> {
-        VersionReq::parse(value).map_err(|_| String::from("Invalid semver range."))
+    pub fn is_version_range(value: &str) -> Result<VersionReq> {
+        VersionReq::parse(value).context(value.to_string())
     }
 
     // Filters out relevant major versions. Relevant meaning anything >=10
@@ -50,7 +52,7 @@ impl dyn NodeVersion {
 }
 
 /// Handles `vX.X.X` prefixes
-fn parse_version_str(version_str: String) -> Result<Version, SemVerError> {
+fn parse_version_str(version_str: String) -> Result<Version> {
     // Required since the versions are prefixed with 'v' which `semver` can't handle
     let clean_version = if version_str.starts_with('v') {
         version_str.get(1..).unwrap()
@@ -58,7 +60,7 @@ fn parse_version_str(version_str: String) -> Result<Version, SemVerError> {
         version_str.borrow()
     };
 
-    Version::parse(clean_version)
+    Version::parse(clean_version).context(version_str)
 }
 
 #[derive(Clone, Deserialize, Debug, Eq, PartialEq)]
@@ -72,25 +74,21 @@ pub struct OnlineNodeVersion {
 }
 
 impl OnlineNodeVersion {
-    pub fn fetch_all() -> Result<Vec<Self>, String> {
-        let response = reqwest::blocking::get("https://nodejs.org/dist/index.json")
-            .map_err(|err| err.to_string())?;
+    pub fn fetch_all() -> Result<Vec<Self>> {
+        let response = reqwest::blocking::get("https://nodejs.org/dist/index.json")?;
 
         let body = response.text().unwrap();
 
-        serde_json::from_str(body.borrow()).map_err(|err| {
-            println!("{}", err);
-            err.to_string()
-        })
+        serde_json::from_str(body.borrow()).context("Failed to fetch versions from nodejs.org")
     }
 
-    pub fn download_url(&self) -> Result<Url, String> {
+    pub fn download_url(&self) -> Result<Url> {
         let file_name = self.get_file();
 
         let url = format!("https://nodejs.org/dist/{}/{}", self.version_str, file_name);
 
         Url::parse(url.borrow())
-            .map_err(|_| format!("Could not create a valid download url. [{}]", url))
+            .context(format!("Could not create a valid download url. [{}]", url))
     }
 
     #[cfg(target_os = "windows")]
@@ -143,10 +141,6 @@ pub struct InstalledNodeVersion {
 }
 
 impl InstalledNodeVersion {
-    pub fn new(version_str: String, path: PathBuf) -> Self {
-        Self { version_str, path }
-    }
-
     pub fn is_installed(config: &Config, version: &Version) -> bool {
         Self::get_all(config)
             .iter()
@@ -155,7 +149,7 @@ impl InstalledNodeVersion {
 
     /// Returns all the installed, valid node versions in `Config.dir`
     pub fn get_all(config: &Config) -> Vec<InstalledNodeVersion> {
-        let base_path = config.dir();
+        let base_path = config.dir.to_owned();
         let mut version_dirs: Vec<Version> = vec![];
 
         for entry in base_path.read_dir().unwrap() {
@@ -199,8 +193,8 @@ impl InstalledNodeVersion {
     }
 
     /// Checks that all the required files are present in the installation dir
-    pub fn validate(&self, config: &Config) -> Result<(), String> {
-        let base_path = config.dir();
+    pub fn validate(&self, config: &Config) -> Result<()> {
+        let base_path = config.dir.to_owned();
         let version_dir: PathBuf = [base_path.to_str().unwrap(), ""].iter().collect();
 
         let mut required_files = vec![version_dir; 2];
@@ -208,18 +202,18 @@ impl InstalledNodeVersion {
         required_files[1].set_file_name(format!("npm{}", Self::get_ext()));
 
         if let Some(missing_file) = required_files.iter().find(|file| !file.exists()) {
-            return Result::Err(format!(
-                "{:#?} is missing in {}",
-                missing_file.file_name().unwrap(),
-                self.version()
-            ));
+            anyhow::bail!(
+                "{:?} is not preset for {:?}",
+                missing_file,
+                self.version_str
+            );
         }
 
         Result::Ok(())
     }
 
     fn get_ext() -> String {
-        String::from(if cfg!(windows) { ".exe" } else { "" })
+        String::from(if cfg!(windows) { ".cmd" } else { "" })
     }
 }
 

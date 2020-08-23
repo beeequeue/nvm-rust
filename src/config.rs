@@ -17,9 +17,10 @@ impl Config {
     pub fn from_env_and_args(_args: &[Arg]) -> Self {
         let dir = env::var("NVM_DIR").ok();
         let dir = PathBuf::from(dir.unwrap_or_else(|| Self::get_default_dir().to_string()));
-        let dir = canonicalize(dir).expect("Could not resolve nvm dir path");
 
         Self::ensure_dir_exists(dir.borrow());
+
+        let dir = canonicalize(dir).expect("Could not resolve nvm dir path");
 
         Config {
             shims_dir: dir.join("shims"),
@@ -31,19 +32,13 @@ impl Config {
         if !path.exists() {
             create_dir_all(path.clone())
                 .unwrap_or_else(|err| panic!("Could not create {:?} - {}", path, err));
+
+            println!("Created nvm dir at {:?}", path);
         }
 
         if !path.is_dir() {
             panic!("{:?} is not a directory! Please rename it.", path)
         }
-    }
-
-    pub fn dir(&self) -> PathBuf {
-        self.dir.clone()
-    }
-
-    pub fn shims_dir(&self) -> PathBuf {
-        self.shims_dir.clone()
     }
 
     #[cfg(windows)]

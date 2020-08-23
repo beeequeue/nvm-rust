@@ -1,5 +1,6 @@
 use std::borrow::Borrow;
 
+use anyhow::Result;
 use clap::ArgMatches;
 use semver::VersionReq;
 
@@ -12,7 +13,7 @@ use crate::{
 pub struct List;
 
 impl<'c> Subcommand<'c> for List {
-    fn run(config: &Config, matches: &ArgMatches) -> Result<(), String> {
+    fn run(config: &Config, matches: &ArgMatches) -> Result<()> {
         let show_installed = !matches.is_present("online");
         let show_online = !matches.is_present("installed");
 

@@ -1,16 +1,17 @@
+#[cfg(windows)]
+use std::fs::File;
+#[cfg(windows)]
+use std::io::copy;
 use std::{borrow::Borrow, fs::create_dir_all, io::Cursor, path::PathBuf};
+#[cfg(unix)]
+use std::{fs::remove_dir_all, io::Error};
 
+use anyhow::{Context, Result};
 use clap::ArgMatches;
 #[cfg(unix)]
 use flate2::read::GzDecoder;
 use reqwest::blocking::Response;
 use semver::VersionReq;
-#[cfg(windows)]
-use std::fs::File;
-#[cfg(windows)]
-use std::io::copy;
-#[cfg(unix)]
-use std::{fs::remove_dir_all, io::Error};
 #[cfg(unix)]
 use tar::{Archive, Unpacked};
 #[cfg(target_os = "windows")]
@@ -28,7 +29,7 @@ pub struct Install<'c> {
 
 impl<'c> Install<'c> {
     #[cfg(target_os = "windows")]
-    fn extract_archive(self, bytes: Response, version: &OnlineNodeVersion) -> Result<(), String> {
+    fn extract_archive(self, bytes: Response, version: &OnlineNodeVersion) -> Result<()> {
         let version_str = version.version().to_string();
         let reader = Cursor::new(bytes.bytes().unwrap());
         let mut archive = ZipArchive::new(reader).unwrap();
@@ -41,14 +42,14 @@ impl<'c> Install<'c> {
             let file_path = file_path.to_string_lossy();
 
             let new_path: PathBuf = if let Some(index) = file_path.find('\\') {
-                let mut path = self.config.dir().clone();
+                let mut path = self.config.dir.to_owned();
                 path.push(version_str.clone());
                 path.push(file_path[index + 1..].to_owned());
 
                 path
             } else {
                 // This happens if it's the root index, the base folder
-                let mut path = self.config.dir().clone();
+                let mut path = self.config.dir.to_owned();
                 path.push(version_str.clone());
 
                 path
@@ -61,7 +62,7 @@ impl<'c> Install<'c> {
             }
 
             if item.is_file() {
-                let mut file = File::create(&*new_path).map_err(|err| err.to_string())?;
+                let mut file = File::create(&*new_path)?;
                 copy(&mut item, &mut file)
                     .unwrap_or_else(|_| panic!(format!("Couldn't write to {:?}", new_path)));
             }
@@ -71,9 +72,9 @@ impl<'c> Install<'c> {
     }
 
     #[cfg(unix)]
-    fn extract_archive(self, bytes: Response, version: &OnlineNodeVersion) -> Result<(), String> {
+    fn extract_archive(self, bytes: Response, version: &OnlineNodeVersion) -> Result<()> {
         let version_str = version.version().to_string();
-        let base_path = self.config.dir();
+        let base_path = self.config.dir.to_owned();
 
         let reader = Cursor::new(bytes.bytes().unwrap());
         let tar = GzDecoder::new(reader);
@@ -83,11 +84,13 @@ impl<'c> Install<'c> {
         version_dir_path.push(version_str.to_owned());
         create_dir_all(version_dir_path.to_owned()).expect("fuck");
 
+        println!("Extracting...");
+
         let result = archive
             .entries()
-            .map_err(|err| err.to_string())?
+            .map_err(anyhow::Error::from)?
             .filter_map(|e| e.ok())
-            .map(|mut entry| -> Result<Unpacked, Error> {
+            .map(|mut entry| -> Result<Unpacked> {
                 let file_path = entry.path()?.to_owned();
                 let file_path = file_path.to_str().unwrap();
 
@@ -106,45 +109,45 @@ impl<'c> Install<'c> {
                 };
 
                 entry.set_preserve_permissions(false);
-                entry.unpack(&new_path)
+                entry.unpack(&new_path).map_err(anyhow::Error::from)
             });
 
-        let errors: Vec<Error> = result
+        let errors: Vec<anyhow::Error> = result
             .into_iter()
             .filter(|result| result.is_err())
             .map(|result| result.unwrap_err())
             .collect();
 
         if !errors.is_empty() {
-            println!(
+            remove_dir_all(version_dir_path).expect("Couldn't clean up version.");
+
+            return Result::Err(anyhow::anyhow!(
                 "Failed to extract all files:\n{:?}",
                 errors
                     .into_iter()
                     .map(|err| err.to_string())
                     .collect::<Vec<String>>()
                     .join("/n")
-            );
-
-            remove_dir_all(version_dir_path).expect("Couldn't clean up version.");
+            ));
         }
 
         Result::Ok(())
     }
 
-    pub fn download_and_extract_to(self, version: &OnlineNodeVersion) -> Result<(), String> {
+    pub fn download_and_extract_to(self, version: &OnlineNodeVersion) -> Result<()> {
         let url = version.download_url().unwrap();
 
         println!("Downloading from {}...", url);
         let response = reqwest::blocking::get(url)
-            .map_err(|err| format!("Failed to download version: {}", err))?;
+            .context(format!("Failed to download version: {}", version.version()))?;
 
         self.extract_archive(response, version)
     }
 }
 
 impl<'c> Subcommand<'c> for Install<'c> {
-    fn run(config: &'c Config, matches: &ArgMatches) -> Result<(), String> {
-        let command = Self { config: &config };
+    fn run(config: &'c Config, matches: &ArgMatches) -> Result<()> {
+        let command = Self { config };
 
         let wanted_range = VersionReq::parse(matches.value_of("version").unwrap()).unwrap();
         let force_install = matches.is_present("force");
