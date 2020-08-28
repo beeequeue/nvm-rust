@@ -1,4 +1,4 @@
-use std::{borrow::Borrow, collections::HashSet, path::PathBuf};
+use std::{borrow::Borrow, collections::HashSet, fs::remove_dir_all, path::PathBuf};
 
 use anyhow::{Context, Result};
 use reqwest::Url;
@@ -82,7 +82,7 @@ impl OnlineNodeVersion {
         serde_json::from_str(body.borrow()).context("Failed to fetch versions from nodejs.org")
     }
 
-    pub fn download_url(&self) -> Result<Url> {
+    pub fn get_download_url(&self) -> Result<Url> {
         let file_name = self.get_file();
 
         let url = format!("https://nodejs.org/dist/{}/{}", self.version_str, file_name);
@@ -141,6 +141,24 @@ pub struct InstalledNodeVersion {
 }
 
 impl InstalledNodeVersion {
+    // Properties
+
+    pub fn get_dir_path(self, config: &Config) -> PathBuf {
+        config.shims_dir.join(self.version().to_string())
+    }
+
+    fn get_ext() -> String {
+        String::from(if cfg!(windows) { ".cmd" } else { "" })
+    }
+
+    // Functions
+
+    pub fn uninstall(self, config: &Config) -> Result<()> {
+        remove_dir_all(self.get_dir_path(config))?;
+
+        Result::Ok(())
+    }
+
     pub fn is_installed(config: &Config, version: &Version) -> bool {
         Self::get_all(config)
             .iter()
@@ -185,11 +203,11 @@ impl InstalledNodeVersion {
     }
 
     /// Returns the latest, installed version matching the version range
-    pub fn get_matching(config: &Config, range: &VersionReq) -> Option<Version> {
+    pub fn get_matching(config: &Config, range: &VersionReq) -> Option<InstalledNodeVersion> {
         Self::get_all(config)
             .iter()
             .find(|inv| range.matches(inv.version().borrow()))
-            .map(|inv| inv.version())
+            .map(|inv| inv.to_owned())
     }
 
     /// Checks that all the required files are present in the installation dir
@@ -210,10 +228,6 @@ impl InstalledNodeVersion {
         }
 
         Result::Ok(())
-    }
-
-    fn get_ext() -> String {
-        String::from(if cfg!(windows) { ".cmd" } else { "" })
     }
 }
 

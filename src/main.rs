@@ -5,7 +5,7 @@ use clap::{clap_app, crate_version};
 
 use config::Config;
 use node_version::NodeVersion;
-use subcommand::{install::Install, list::List, switch::Switch, Subcommand};
+use subcommand::{install::Install, list::List, switch::Switch, uninstall::Uninstall, Subcommand};
 
 mod config;
 mod node_version;
@@ -33,11 +33,17 @@ fn main() -> Result<()> {
             (@arg force: -f --force "Install version even if it's already installed")
             (@arg version: +required {NodeVersion::is_version_range} "A semver range. The latest version matching this range will be installed.")
         )
+        (@subcommand uninstall =>
+            (alias: "u")
+            (alias: "r")
+            (about: "Uninstall an installed node version")
+            (@arg version: +required {NodeVersion::is_version_range} "A semver range. The latest installed version matching this range will be removed.")
+        )
         (@subcommand use =>
             (alias: "switch")
             (alias: "u")
             (about: "Switch to an installed node version")
-            (@arg version: {NodeVersion::is_version_range} "A semver range. The latest version matching this range will be installed.\nRespects `.nvmrc` files.")
+            (@arg version: {NodeVersion::is_version_range} "A semver range. The latest version matching this range will be switched to.\nRespects `.nvmrc` files.")
         )
     );
 
@@ -51,6 +57,9 @@ fn main() -> Result<()> {
     let result = match matches.subcommand_name() {
         Some("list") => List::run(&config, matches.subcommand_matches("list").unwrap()),
         Some("install") => Install::run(&config, matches.subcommand_matches("install").unwrap()),
+        Some("uninstall") => {
+            Uninstall::run(&config, matches.subcommand_matches("uninstall").unwrap())
+        },
         Some("use") => Switch::run(&config, matches.subcommand_matches("use").unwrap()),
         _ => Result::Ok(()),
     };
