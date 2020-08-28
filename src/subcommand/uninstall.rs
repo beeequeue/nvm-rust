@@ -2,19 +2,13 @@ use anyhow::Result;
 use clap::ArgMatches;
 use semver::VersionReq;
 
-use crate::{
-    config::Config,
-    node_version::{InstalledNodeVersion, OnlineNodeVersion},
-    subcommand::Subcommand,
-};
+use crate::{config::Config, node_version::InstalledNodeVersion, subcommand::Subcommand};
 
-pub struct Uninstall<'c> {
-    config: &'c Config,
-}
+pub struct Uninstall {}
 
-impl<'c> Uninstall<'c> {}
+impl Uninstall {}
 
-impl<'c> Subcommand<'c> for Uninstall<'c> {
+impl<'c> Subcommand<'c> for Uninstall {
     fn run(config: &'c Config, matches: &ArgMatches) -> Result<()> {
         let wanted_range = VersionReq::parse(matches.value_of("version").unwrap()).unwrap();
 
