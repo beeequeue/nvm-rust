@@ -234,7 +234,7 @@ impl InstalledNodeVersion {
 
 impl NodeVersion for InstalledNodeVersion {
     fn version(&self) -> Version {
-        parse_version_str(self.version_str.clone())
+        parse_version_str(self.version_str.to_owned())
             .expect("Got bad version into InstalledNodeVersion.")
     }
 }
