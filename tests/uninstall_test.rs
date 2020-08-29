@@ -7,7 +7,7 @@ mod uninstall {
 
     use crate::{
         common,
-        common::{assert_outputs, assert_version_not_installed},
+        common::{assert_outputs, assert_version_installed, assert_version_selected},
     };
 
     fn setup_versions(versions: Vec<&str>) -> Result<()> {
@@ -32,7 +32,8 @@ mod uninstall {
         let result = cmd.arg("uninstall").arg("12").assert();
 
         assert_outputs(&result, "Uninstalled 12.18.3!", "")?;
-        assert_version_not_installed(version_str)?;
+        assert_version_installed(version_str, false)?;
+        assert_version_selected(version_str, false)?;
 
         Result::Ok(())
     }
@@ -47,7 +48,8 @@ mod uninstall {
         let result = cmd.arg("uninstall").arg(version_str).assert();
 
         assert_outputs(&result, "Uninstalled 12.18.3!", "")?;
-        assert_version_not_installed(version_str)?;
+        assert_version_installed(version_str, false)?;
+        assert_version_selected(version_str, false)?;
 
         Result::Ok(())
     }

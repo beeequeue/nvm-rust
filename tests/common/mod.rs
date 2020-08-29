@@ -4,7 +4,7 @@ use std::os::unix::fs::symlink;
 use std::os::windows::fs::symlink_dir;
 use std::{
     env::set_var,
-    fs::{canonicalize, copy, create_dir_all, read_dir, remove_dir_all, remove_file},
+    fs::{canonicalize, copy, create_dir_all, read_dir, read_link, remove_dir_all, remove_file},
     path::PathBuf,
 };
 
@@ -128,30 +128,41 @@ stderr output:
     Result::Ok(())
 }
 
-pub fn assert_version_installed(version_str: &str) -> Result<()> {
+pub fn assert_version_installed(version_str: &str, installed: bool) -> Result<()> {
     let path = integration_dir();
 
     for filename in required_files().iter() {
         let file_path = path.join(version_str).join(filename);
 
-        assert!(file_path.exists(), "{:#?} was not created", file_path);
+        assert_eq!(
+            file_path.exists(),
+            installed,
+            "{:#?} does{}exist",
+            file_path,
+            if !installed { " not " } else { " " }
+        );
     }
 
     Result::Ok(())
 }
 
-pub fn assert_version_not_installed(version_str: &str) -> Result<()> {
-    let path = integration_dir();
+pub fn assert_version_selected(version_str: &str, selected: bool) -> Result<()> {
+    let path = integration_dir().join("shims");
 
-    for filename in required_files().iter() {
-        let file_path = path.join(version_str).join(filename);
-
-        assert!(
-            !file_path.exists(),
-            "{:#?} exists when it shouldn't.",
-            file_path
-        );
+    if selected {
+        assert!(path.exists(), "shims dir doesn't exist.");
     }
+
+    let real_path = read_link(path)?;
+
+    assert_eq!(
+        real_path.to_str().unwrap().contains(version_str),
+        selected,
+        "{} is{}selected (Expected it{}to be).",
+        version_str,
+        if selected { " not " } else { " " },
+        if !selected { " not " } else { " " },
+    );
 
     Result::Ok(())
 }
