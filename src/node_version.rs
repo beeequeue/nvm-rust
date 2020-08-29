@@ -147,6 +147,12 @@ impl InstalledNodeVersion {
         config.dir.join(self.version().to_string())
     }
 
+    pub fn is_installed(config: &Config, version: &Version) -> bool {
+        Self::get_all(config)
+            .iter()
+            .any(|v| v.version().eq(version))
+    }
+
     fn get_ext() -> String {
         String::from(if cfg!(windows) { ".cmd" } else { "" })
     }
@@ -158,12 +164,6 @@ impl InstalledNodeVersion {
 
         println!("Uninstalled {}!", self.version());
         Result::Ok(())
-    }
-
-    pub fn is_installed(config: &Config, version: &Version) -> bool {
-        Self::get_all(config)
-            .iter()
-            .any(|v| v.version().eq(version))
     }
 
     /// Returns all the installed, valid node versions in `Config.dir`
