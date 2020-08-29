@@ -143,8 +143,8 @@ pub struct InstalledNodeVersion {
 impl InstalledNodeVersion {
     // Properties
 
-    pub fn get_dir_path(self, config: &Config) -> PathBuf {
-        config.shims_dir.join(self.version().to_string())
+    pub fn get_dir_path(&self, config: &Config) -> PathBuf {
+        config.dir.join(self.version().to_string())
     }
 
     fn get_ext() -> String {
@@ -156,6 +156,7 @@ impl InstalledNodeVersion {
     pub fn uninstall(self, config: &Config) -> Result<()> {
         remove_dir_all(self.get_dir_path(config))?;
 
+        println!("Uninstalled {}!", self.version());
         Result::Ok(())
     }
 

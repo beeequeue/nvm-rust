@@ -139,3 +139,19 @@ pub fn assert_version_installed(version_str: &str) -> Result<()> {
 
     Result::Ok(())
 }
+
+pub fn assert_version_not_installed(version_str: &str) -> Result<()> {
+    let path = integration_dir();
+
+    for filename in required_files().iter() {
+        let file_path = path.join(version_str).join(filename);
+
+        assert!(
+            !file_path.exists(),
+            "{:#?} exists when it shouldn't.",
+            file_path
+        );
+    }
+
+    Result::Ok(())
+}
