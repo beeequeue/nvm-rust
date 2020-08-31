@@ -10,6 +10,7 @@ use subcommand::{install::Install, list::List, switch::Switch, uninstall::Uninst
 mod config;
 mod node_version;
 mod subcommand;
+mod utils;
 
 fn validate_number(value: &str) -> Result<i32> {
     value.parse().context(format!("{} is not a number!", value))

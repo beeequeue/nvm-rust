@@ -1,4 +1,9 @@
-use std::{borrow::Borrow, collections::HashSet, fs::remove_dir_all, path::PathBuf};
+use std::{
+    borrow::Borrow,
+    collections::HashSet,
+    fs::{read_link, remove_dir_all},
+    path::PathBuf,
+};
 
 use anyhow::{Context, Result};
 use reqwest::Url;
@@ -153,6 +158,20 @@ impl InstalledNodeVersion {
             .any(|v| v.version().eq(version))
     }
 
+    pub fn is_selected(&self, config: &Config) -> bool {
+        let path = config.shims_dir.to_owned();
+
+        if !path.exists() {
+            return false;
+        }
+
+        if let Result::Ok(path) = read_link(path) {
+            return path.to_str().unwrap().contains(&self.version().to_string());
+        }
+
+        false
+    }
+
     fn get_ext() -> String {
         String::from(if cfg!(windows) { ".cmd" } else { "" })
     }
@@ -164,6 +183,32 @@ impl InstalledNodeVersion {
 
         println!("Uninstalled {}!", self.version());
         Result::Ok(())
+    }
+
+    /// Checks that all the required files are present in the installation dir
+    pub fn validate(&self, config: &Config) -> Result<()> {
+        let base_path = config.dir.to_owned();
+        let version_dir: PathBuf = [base_path.to_str().unwrap(), ""].iter().collect();
+
+        let mut required_files = vec![version_dir; 2];
+        required_files[0].set_file_name(format!("node{}", Self::get_ext()));
+        required_files[1].set_file_name(format!("npm{}", Self::get_ext()));
+
+        if let Some(missing_file) = required_files.iter().find(|file| !file.exists()) {
+            anyhow::bail!(
+                "{:?} is not preset for {:?}",
+                missing_file,
+                self.version_str
+            );
+        }
+
+        Result::Ok(())
+    }
+
+    // Static functions
+
+    pub fn deselect(config: &Config) -> Result<()> {
+        remove_dir_all(config.shims_dir.to_owned()).map_err(anyhow::Error::from)
     }
 
     /// Returns all the installed, valid node versions in `Config.dir`
@@ -209,26 +254,6 @@ impl InstalledNodeVersion {
             .iter()
             .find(|inv| range.matches(inv.version().borrow()))
             .map(|inv| inv.to_owned())
-    }
-
-    /// Checks that all the required files are present in the installation dir
-    pub fn validate(&self, config: &Config) -> Result<()> {
-        let base_path = config.dir.to_owned();
-        let version_dir: PathBuf = [base_path.to_str().unwrap(), ""].iter().collect();
-
-        let mut required_files = vec![version_dir; 2];
-        required_files[0].set_file_name(format!("node{}", Self::get_ext()));
-        required_files[1].set_file_name(format!("npm{}", Self::get_ext()));
-
-        if let Some(missing_file) = required_files.iter().find(|file| !file.exists()) {
-            anyhow::bail!(
-                "{:?} is not preset for {:?}",
-                missing_file,
-                self.version_str
-            );
-        }
-
-        Result::Ok(())
     }
 }
 
