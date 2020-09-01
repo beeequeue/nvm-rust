@@ -38,6 +38,7 @@ fn main() -> Result<()> {
             (alias: "u")
             (alias: "r")
             (about: "Uninstall an installed node version")
+            (@arg force: -f --force "Skip prompt if uninstalling selected version.")
             (@arg version: +required {NodeVersion::is_version_range} "A semver range. The latest installed version matching this range will be removed.")
         )
         (@subcommand use =>

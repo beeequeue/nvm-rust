@@ -15,16 +15,19 @@ impl Uninstall {}
 
 impl<'c> Subcommand<'c> for Uninstall {
     fn run(config: &'c Config, matches: &ArgMatches) -> Result<()> {
+        let force = matches.is_present("force");
         let wanted_range = VersionReq::parse(matches.value_of("version").unwrap()).unwrap();
 
         if let Some(version) = InstalledNodeVersion::get_matching(config, &wanted_range) {
             if version.is_selected(config) {
                 println!("{} is currently selected.", version.version());
 
-                if !utils::confirm_choice(
-                    String::from("Are you sure you want to uninstall it?"),
-                    false,
-                ) {
+                if !force
+                    || !utils::confirm_choice(
+                        String::from("Are you sure you want to uninstall it?"),
+                        false,
+                    )
+                {
                     return Result::Ok(());
                 }
 
