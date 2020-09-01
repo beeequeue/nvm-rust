@@ -139,7 +139,7 @@ pub fn assert_version_installed(version_str: &str, installed: bool) -> Result<()
             installed,
             "{:#?} does{}exist",
             file_path,
-            if !installed { " not " } else { " " }
+            if !installed { " " } else { " not " }
         );
     }
 
