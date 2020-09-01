@@ -26,7 +26,7 @@ mod uninstall {
     #[serial]
     fn can_uninstall_version_matching_range() -> Result<()> {
         let version_str = "12.18.3";
-        setup_versions(vec![version_str, "14.5.0"])?;
+        setup_versions(vec!["14.5.0", version_str])?;
 
         let mut cmd = Command::cargo_bin("nvm-rust").unwrap();
         let result = cmd.arg("uninstall").arg("12").assert();
@@ -42,7 +42,7 @@ mod uninstall {
     #[serial]
     fn can_uninstall_version_matching_exact_version() -> Result<()> {
         let version_str = "12.18.3";
-        setup_versions(vec![version_str, "14.5.0"])?;
+        setup_versions(vec!["14.5.0", version_str])?;
 
         let mut cmd = Command::cargo_bin("nvm-rust").unwrap();
         let result = cmd.arg("uninstall").arg(version_str).assert();
