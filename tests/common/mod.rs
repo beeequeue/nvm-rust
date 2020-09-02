@@ -102,7 +102,7 @@ pub fn assert_outputs(result: &Assert, stdout: &str, stderr: &str) -> Result<()>
     let output_stdout = String::from_utf8(output.stdout)?;
     let result = OutputResult(
         output_stdout.trim() == stdout,
-        output_stderr.trim() == stderr,
+        output_stderr.trim().starts_with(stderr),
     );
 
     if result != OutputResult(true, true) {

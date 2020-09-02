@@ -53,4 +53,21 @@ mod uninstall {
 
         Result::Ok(())
     }
+
+    #[test]
+    #[serial]
+    fn exits_gracefully_if_no_version_is_found() -> Result<()> {
+        setup_versions(vec!["14.5.0"])?;
+
+        let mut cmd = Command::cargo_bin("nvm-rust").unwrap();
+        let result = cmd.arg("uninstall").arg("12").assert();
+
+        assert_outputs(
+            &result,
+            "",
+            "Error: Did not find an installed version matching ^12",
+        )?;
+
+        Result::Ok(())
+    }
 }
