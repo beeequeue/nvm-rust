@@ -11,8 +11,6 @@ use crate::{
 
 pub struct Uninstall {}
 
-impl Uninstall {}
-
 impl<'c> Subcommand<'c> for Uninstall {
     fn run(config: &'c Config, matches: &ArgMatches) -> Result<()> {
         let force = matches.is_present("force");
@@ -23,7 +21,7 @@ impl<'c> Subcommand<'c> for Uninstall {
                 println!("{} is currently selected.", version.version());
 
                 if !force
-                    || !utils::confirm_choice(
+                    && !utils::confirm_choice(
                         String::from("Are you sure you want to uninstall it?"),
                         false,
                     )

@@ -149,11 +149,8 @@ pub fn assert_version_installed(version_str: &str, installed: bool) -> Result<()
 pub fn assert_version_selected(version_str: &str, selected: bool) -> Result<()> {
     let path = integration_dir().join("shims");
 
-    if selected {
-        assert!(path.exists(), "shims dir doesn't exist.");
-    }
-
-    let real_path = read_link(path)?;
+    assert_eq!(path.exists(), selected);
+    let real_path = read_link(path).unwrap_or_else(|_| PathBuf::from(""));
 
     assert_eq!(
         real_path.to_str().unwrap().contains(version_str),

@@ -56,6 +56,57 @@ mod uninstall {
 
     #[test]
     #[serial]
+    fn prompts_when_uninstalling_selected_version() -> Result<()> {
+        let version_str = "12.18.3";
+        setup_versions(vec![version_str])?;
+
+        let mut cmd = Command::cargo_bin("nvm-rust").unwrap();
+
+        let result = cmd.arg("uninstall").arg(version_str).assert();
+        assert_outputs(
+            &result,
+            "12.18.3 is currently selected.\nAre you sure you want to uninstall it? (y/N)",
+            "",
+        )?;
+
+        cmd.write_stdin("y\n");
+
+        let result = cmd.assert();
+        assert_outputs(
+            &result,
+            "12.18.3 is currently selected.\nAre you sure you want to uninstall it? (y/N)\nUninstalled 12.18.3!",
+            "",
+        )?;
+
+        assert_version_installed(version_str, false)?;
+        assert_version_selected(version_str, false)?;
+
+        Result::Ok(())
+    }
+
+    #[test]
+    #[serial]
+    fn force_skips_prompt() -> Result<()> {
+        let version_str = "12.18.3";
+        setup_versions(vec![version_str])?;
+
+        let mut cmd = Command::cargo_bin("nvm-rust").unwrap();
+
+        let result = cmd.arg("uninstall").arg(version_str).arg("-f").assert();
+        assert_outputs(
+            &result,
+            "12.18.3 is currently selected.\nUninstalled 12.18.3!",
+            "",
+        )?;
+
+        assert_version_installed(version_str, false)?;
+        assert_version_selected(version_str, false)?;
+
+        Result::Ok(())
+    }
+
+    #[test]
+    #[serial]
     fn exits_gracefully_if_no_version_is_found() -> Result<()> {
         setup_versions(vec!["14.5.0"])?;
 
