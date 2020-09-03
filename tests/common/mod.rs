@@ -149,17 +149,23 @@ pub fn assert_version_installed(version_str: &str, installed: bool) -> Result<()
 pub fn assert_version_selected(version_str: &str, selected: bool) -> Result<()> {
     let path = integration_dir().join("shims");
 
-    assert_eq!(path.exists(), selected);
-    let real_path = read_link(path).unwrap_or_else(|_| PathBuf::from(""));
+    if path.exists() {
+        let real_path = read_link(path).unwrap();
 
-    assert_eq!(
-        real_path.to_str().unwrap().contains(version_str),
-        selected,
-        "{} is{}selected (Expected it{}to be).",
-        version_str,
-        if selected { " not " } else { " " },
-        if !selected { " not " } else { " " },
-    );
+        assert_eq!(
+            real_path.to_str().unwrap().contains(version_str),
+            selected,
+            "{} is{}selected (Expected it{}to be).",
+            version_str,
+            if selected { " not " } else { " " },
+            if !selected { " not " } else { " " },
+        );
+    } else if selected {
+        panic!(
+            "{} should have been selected but no version is.",
+            version_str
+        )
+    }
 
     Result::Ok(())
 }
