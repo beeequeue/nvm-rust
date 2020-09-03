@@ -12,7 +12,11 @@ use anyhow::Result;
 use clap::ArgMatches;
 use semver::{Version, VersionReq};
 
-use crate::{config::Config, node_version::InstalledNodeVersion, subcommand::Subcommand};
+use crate::{
+    config::Config,
+    node_version::{InstalledNodeVersion, NodeVersion},
+    subcommand::Subcommand,
+};
 
 pub struct Switch<'c> {
     config: &'c Config,
@@ -77,14 +81,14 @@ impl<'c> Subcommand<'c> for Switch<'c> {
             anyhow::bail!("Did not get a version to switch to.");
         }
 
-        if let Some(version) = InstalledNodeVersion::get_matching(config, range.unwrap().borrow()) {
-            if !InstalledNodeVersion::is_installed(config, version.borrow()) {
-                anyhow::bail!("{} is not installed", version);
+        if let Some(inv) = InstalledNodeVersion::get_matching(config, range.unwrap().borrow()) {
+            if !InstalledNodeVersion::is_installed(config, &inv.version()) {
+                anyhow::bail!("{} is not installed", inv.version());
             }
 
-            let result = command.set_shims(version.borrow());
+            let result = command.set_shims(&inv.version());
             if let Result::Ok(()) = result {
-                println!("Switched to {}", version);
+                println!("Switched to {}", inv.version());
             }
 
             return result;

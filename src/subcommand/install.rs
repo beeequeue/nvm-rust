@@ -135,7 +135,7 @@ impl<'c> Install<'c> {
     }
 
     pub fn download_and_extract_to(self, version: &OnlineNodeVersion) -> Result<()> {
-        let url = version.download_url().unwrap();
+        let url = version.get_download_url().unwrap();
 
         println!("Downloading from {}...", url);
         let response = reqwest::blocking::get(url)

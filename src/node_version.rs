@@ -1,4 +1,9 @@
-use std::{borrow::Borrow, collections::HashSet, path::PathBuf};
+use std::{
+    borrow::Borrow,
+    collections::HashSet,
+    fs::{read_link, remove_dir_all},
+    path::PathBuf,
+};
 
 use anyhow::{Context, Result};
 use reqwest::Url;
@@ -82,7 +87,7 @@ impl OnlineNodeVersion {
         serde_json::from_str(body.borrow()).context("Failed to fetch versions from nodejs.org")
     }
 
-    pub fn download_url(&self) -> Result<Url> {
+    pub fn get_download_url(&self) -> Result<Url> {
         let file_name = self.get_file();
 
         let url = format!("https://nodejs.org/dist/{}/{}", self.version_str, file_name);
@@ -141,10 +146,69 @@ pub struct InstalledNodeVersion {
 }
 
 impl InstalledNodeVersion {
+    // Properties
+
+    pub fn get_dir_path(&self, config: &Config) -> PathBuf {
+        config.dir.join(self.version().to_string())
+    }
+
     pub fn is_installed(config: &Config, version: &Version) -> bool {
         Self::get_all(config)
             .iter()
             .any(|v| v.version().eq(version))
+    }
+
+    pub fn is_selected(&self, config: &Config) -> bool {
+        let path = config.shims_dir.to_owned();
+
+        if !path.exists() {
+            return false;
+        }
+
+        if let Result::Ok(path) = read_link(path) {
+            return path.to_str().unwrap().contains(&self.version().to_string());
+        }
+
+        false
+    }
+
+    fn get_ext() -> String {
+        String::from(if cfg!(windows) { ".cmd" } else { "" })
+    }
+
+    // Functions
+
+    pub fn uninstall(self, config: &Config) -> Result<()> {
+        remove_dir_all(self.get_dir_path(config))?;
+
+        println!("Uninstalled {}!", self.version());
+        Result::Ok(())
+    }
+
+    /// Checks that all the required files are present in the installation dir
+    pub fn validate(&self, config: &Config) -> Result<()> {
+        let base_path = config.dir.to_owned();
+        let version_dir: PathBuf = [base_path.to_str().unwrap(), ""].iter().collect();
+
+        let mut required_files = vec![version_dir; 2];
+        required_files[0].set_file_name(format!("node{}", Self::get_ext()));
+        required_files[1].set_file_name(format!("npm{}", Self::get_ext()));
+
+        if let Some(missing_file) = required_files.iter().find(|file| !file.exists()) {
+            anyhow::bail!(
+                "{:?} is not preset for {:?}",
+                missing_file,
+                self.version_str
+            );
+        }
+
+        Result::Ok(())
+    }
+
+    // Static functions
+
+    pub fn deselect(config: &Config) -> Result<()> {
+        remove_dir_all(config.shims_dir.to_owned()).map_err(anyhow::Error::from)
     }
 
     /// Returns all the installed, valid node versions in `Config.dir`
@@ -185,41 +249,17 @@ impl InstalledNodeVersion {
     }
 
     /// Returns the latest, installed version matching the version range
-    pub fn get_matching(config: &Config, range: &VersionReq) -> Option<Version> {
+    pub fn get_matching(config: &Config, range: &VersionReq) -> Option<InstalledNodeVersion> {
         Self::get_all(config)
             .iter()
             .find(|inv| range.matches(inv.version().borrow()))
-            .map(|inv| inv.version())
-    }
-
-    /// Checks that all the required files are present in the installation dir
-    pub fn validate(&self, config: &Config) -> Result<()> {
-        let base_path = config.dir.to_owned();
-        let version_dir: PathBuf = [base_path.to_str().unwrap(), ""].iter().collect();
-
-        let mut required_files = vec![version_dir; 2];
-        required_files[0].set_file_name(format!("node{}", Self::get_ext()));
-        required_files[1].set_file_name(format!("npm{}", Self::get_ext()));
-
-        if let Some(missing_file) = required_files.iter().find(|file| !file.exists()) {
-            anyhow::bail!(
-                "{:?} is not preset for {:?}",
-                missing_file,
-                self.version_str
-            );
-        }
-
-        Result::Ok(())
-    }
-
-    fn get_ext() -> String {
-        String::from(if cfg!(windows) { ".cmd" } else { "" })
+            .map(|inv| inv.to_owned())
     }
 }
 
 impl NodeVersion for InstalledNodeVersion {
     fn version(&self) -> Version {
-        parse_version_str(self.version_str.clone())
+        parse_version_str(self.version_str.to_owned())
             .expect("Got bad version into InstalledNodeVersion.")
     }
 }

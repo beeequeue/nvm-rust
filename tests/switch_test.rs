@@ -7,7 +7,7 @@ mod switch {
 
     use crate::{
         common,
-        common::{assert_outputs, assert_version_installed},
+        common::{assert_outputs, assert_version_selected},
     };
 
     #[test]
@@ -24,7 +24,7 @@ mod switch {
         let output = String::from_utf8(result.get_output().to_owned().stdout)?;
         let output = output.trim();
 
-        assert_version_installed(version_str)?;
+        assert_version_selected(version_str, true)?;
         assert_eq!(output, "Switched to 12.18.3");
 
         Result::Ok(())
@@ -45,7 +45,7 @@ mod switch {
 
         let result = cmd.arg("use").arg("14").assert();
 
-        assert_version_installed(new_version)?;
+        assert_version_selected(new_version, true)?;
         assert_outputs(&result, "Switched to 14.5.0", "")?;
 
         Result::Ok(())

@@ -4,7 +4,7 @@ use std::os::unix::fs::symlink;
 use std::os::windows::fs::symlink_dir;
 use std::{
     env::set_var,
-    fs::{canonicalize, copy, create_dir_all, read_dir, remove_dir_all, remove_file},
+    fs::{canonicalize, copy, create_dir_all, read_dir, read_link, remove_dir_all, remove_file},
     path::PathBuf,
 };
 
@@ -102,7 +102,7 @@ pub fn assert_outputs(result: &Assert, stdout: &str, stderr: &str) -> Result<()>
     let output_stdout = String::from_utf8(output.stdout)?;
     let result = OutputResult(
         output_stdout.trim() == stdout,
-        output_stderr.trim() == stderr,
+        output_stderr.trim().starts_with(stderr),
     );
 
     if result != OutputResult(true, true) {
@@ -128,13 +128,43 @@ stderr output:
     Result::Ok(())
 }
 
-pub fn assert_version_installed(version_str: &str) -> Result<()> {
+pub fn assert_version_installed(version_str: &str, installed: bool) -> Result<()> {
     let path = integration_dir();
 
     for filename in required_files().iter() {
         let file_path = path.join(version_str).join(filename);
 
-        assert!(file_path.exists(), "{:#?} was not created", file_path);
+        assert_eq!(
+            file_path.exists(),
+            installed,
+            "{:#?} does{}exist",
+            file_path,
+            if !installed { " " } else { " not " }
+        );
+    }
+
+    Result::Ok(())
+}
+
+pub fn assert_version_selected(version_str: &str, selected: bool) -> Result<()> {
+    let path = integration_dir().join("shims");
+
+    if path.exists() {
+        let real_path = read_link(path).unwrap();
+
+        assert_eq!(
+            real_path.to_str().unwrap().contains(version_str),
+            selected,
+            "{} is{}selected (Expected it{}to be).",
+            version_str,
+            if selected { " not " } else { " " },
+            if !selected { " not " } else { " " },
+        );
+    } else if selected {
+        panic!(
+            "{} should have been selected but no version is.",
+            version_str
+        )
     }
 
     Result::Ok(())
