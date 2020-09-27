@@ -6,7 +6,7 @@ on:
 
 jobs:
   version-or-publish:
-    name: : "Version or Publish"
+    name: "Version or Publish"
     runs-on: ubuntu-latest
 
     steps:
