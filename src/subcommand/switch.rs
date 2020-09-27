@@ -59,7 +59,11 @@ impl<'c> Switch<'c> {
             }
         }
 
-        symlink(self.config.dir.join(version.to_string()), shims_dir).map_err(anyhow::Error::from)
+        symlink(
+            self.config.dir.join(version.to_string()).join("bin"),
+            shims_dir,
+        )
+        .map_err(anyhow::Error::from)
     }
 }
 
