@@ -10,7 +10,7 @@ use std::os::windows::fs::symlink_dir;
 
 use anyhow::Result;
 use clap::ArgMatches;
-use semver::{Version, VersionReq};
+use semver::{Compat, Version, VersionReq};
 
 use crate::{
     config::Config,
@@ -71,7 +71,7 @@ impl<'c> Subcommand<'c> for Switch<'c> {
 
         if let Some(arg) = matches.value_of("version") {
             // The argument is checked by clap in main.rs
-            range = VersionReq::parse(arg).ok();
+            range = VersionReq::parse_compat(arg, Compat::Npm).ok();
         } else {
             // TODO: Check for .nvmrc, parse it, etc...
             anyhow::bail!(".nvmrc files are not supported yet.");
