@@ -1,0 +1,45 @@
+name: Release
+on:
+  release:
+    types:
+      - created
+
+jobs:
+  upload:
+    name: "Build and Upload Artifacts"
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os: [ macos-latest, ubuntu-latest, windows-latest ]
+        include:
+          - platform: macos-latest
+            binary: target/release/nvm-rust
+          - platform: ubuntu-latest
+            binary: target/release/nvm-rust
+          - platform: windows-latest
+            binary: target/release/nvm-rust.exe
+
+    steps:
+      - run: echo "${{ toJson(github.event) }}"
+
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly
+          default: true
+
+      - uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ matrix.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ matrix.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+            ${{ matrix.os }}-cargo-
+
+      - run: cargo build --release --all-features --locked

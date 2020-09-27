@@ -8,13 +8,6 @@ jobs:
     strategy:
       matrix:
         os: [macos-latest, ubuntu-latest, windows-latest]
-        include:
-          - platform: macos-latest
-            binary: target/release/nvm-rust
-          - platform: ubuntu-latest
-            binary: target/release/nvm-rust
-          - platform: windows-latest
-            binary: target/release/nvm-rust.exe
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -39,19 +32,6 @@ jobs:
       - run: cargo build --release --all-features --locked
 
       - run: cargo test --release --all-features
-
-      - name: "Upload artifacts"
-        #if:
-        run: echo "${{ github.ref }}"
-
-      - name: "Log built files"
-        #if:
-        run: ls target/release
-
-      - name: "Log built files"
-        #if:
-        run: ls ${{ matrix.binary }}
-
     
   clippy:
     name: Clippy
