@@ -25,11 +25,11 @@
           "pipe": true
         }
       ],
+      "postpublish": [
+        "git tag v${ pkgFile.versionMajor }.${ pkgFile.versionMinor }.${ pkgFile.versionPatch } -f",
+        "git push --tags -f"
+      ],
       "assets": [
-        {
-          "path": "${ pkg.path }/${ pkg.pkg }-${ pkgFile.version }.crate",
-          "name": "${ pkg.pkg }-${ pkgFile.version }.crate"
-        },
         {
           "path": "${ pkg.path }/${ pkg.pkg }-${ pkgFile.version }.crate",
           "name": "${ pkg.pkg }-${ pkgFile.version }.crate"

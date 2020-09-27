@@ -24,6 +24,7 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           command: 'version-or-publish'
           createRelease: true
+          draftRelease: true
 
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v3

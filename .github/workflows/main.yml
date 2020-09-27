@@ -6,19 +6,19 @@ jobs:
   build_and_test:
     name: Build and Test
     continue-on-error: true
-
     strategy:
       matrix:
         os: [macos-latest, ubuntu-latest, windows-latest]
-
     runs-on: ${{ matrix.os }}
 
     steps:
       - uses: actions/checkout@v2
+
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: nightly
           default: true
+
       - uses: actions/cache@v2
         with:
           path: |
@@ -29,14 +29,23 @@ jobs:
           restore-keys: |
             ${{ matrix.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
             ${{ matrix.os }}-cargo-
+
       - run: cargo build --release --all-features --locked
+
       - run: cargo test --release --all-features
+
+      - name: "Upload artifacts"
+        #if:
+        run: echo "${{ github.ref }}"
+
     
   clippy:
     name: Clippy
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v2
+
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
@@ -44,6 +53,7 @@ jobs:
           override: true
           components: rustfmt, clippy
       - run: cargo fmt --all -- --check
+
       - uses: actions-rs/clippy-check@v1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
