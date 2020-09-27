@@ -4,7 +4,10 @@ use std::os::unix::fs::symlink;
 use std::os::windows::fs::symlink_dir;
 use std::{
     env::set_var,
-    fs::{canonicalize, copy, create_dir_all, read_dir, read_link, remove_dir_all, remove_file},
+    fs::{
+        canonicalize, copy, create_dir_all, read_dir, read_link, remove_dir_all, remove_file,
+        symlink_metadata,
+    },
     path::PathBuf,
 };
 
@@ -156,7 +159,8 @@ pub fn assert_version_installed(version_str: &str, installed: bool) -> Result<()
 pub fn assert_version_selected(version_str: &str, selected: bool) -> Result<()> {
     let path = integration_dir().join("shims");
 
-    if path.exists() {
+    // symlink_metadata errors if the path doesn't exist
+    if symlink_metadata(&path).is_ok() {
         let real_path = read_link(path).unwrap();
 
         assert_eq!(
