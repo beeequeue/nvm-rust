@@ -3,6 +3,7 @@
 use anyhow::{Context, Result};
 use clap::{clap_app, crate_version};
 
+use crate::subcommand::parse_version::ParseVersion;
 use config::Config;
 use node_version::NodeVersion;
 use subcommand::{install::Install, list::List, switch::Switch, uninstall::Uninstall, Subcommand};
@@ -47,6 +48,12 @@ fn main() -> Result<()> {
             (about: "Switch to an installed node version")
             (@arg version: {NodeVersion::is_version_range} "A semver range. The latest version matching this range will be switched to.\nRespects `.nvmrc` files.")
         )
+        (@subcommand parse_version =>
+            (alias: "parse-version")
+            (alias: "pv")
+            (about: "Echo what a version string will be parsed to.")
+            (@arg version: {NodeVersion::is_version_range} "The semver range to echo the parsed result of.")
+        )
     );
 
     let config = Config::from_env_and_args(app.get_arguments());
@@ -63,6 +70,10 @@ fn main() -> Result<()> {
             Uninstall::run(&config, matches.subcommand_matches("uninstall").unwrap())
         },
         Some("use") => Switch::run(&config, matches.subcommand_matches("use").unwrap()),
+        Some("parse_version") => ParseVersion::run(
+            &config,
+            matches.subcommand_matches("parse_version").unwrap(),
+        ),
         _ => Result::Ok(()),
     };
 

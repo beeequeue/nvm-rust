@@ -17,14 +17,16 @@ impl<'c> Subcommand<'c> for List {
         let show_installed = !matches.is_present("online");
         let show_online = !matches.is_present("installed");
 
-        let filter = matches
+        let filter_option = matches
             .value_of("filter")
             .map(|version_str| VersionReq::parse_compat(version_str, Compat::Npm).unwrap());
 
         let mut installed_versions = InstalledNodeVersion::get_all(config);
-        if filter.is_some() {
-            installed_versions =
-                NodeVersion::filter_version_req(installed_versions, filter.to_owned().unwrap());
+        if filter_option.is_some() {
+            installed_versions = NodeVersion::filter_version_req(
+                installed_versions,
+                &filter_option.to_owned().unwrap(),
+            );
         }
 
         let mut installed_versions_str = String::new();
@@ -53,12 +55,12 @@ impl<'c> Subcommand<'c> for List {
             online_versions_str = String::from("Available for download:\n");
 
             if let Result::Ok(mut online_versions) = OnlineNodeVersion::fetch_all() {
-                if filter.is_some() {
+                if filter_option.is_some() {
                     let limit = if !show_installed { 10 } else { 5 };
 
                     online_versions = NodeVersion::filter_version_req(
                         online_versions,
-                        filter.to_owned().unwrap(),
+                        &filter_option.to_owned().unwrap(),
                     );
                     online_versions = online_versions[..limit].to_vec();
                 } else {
@@ -80,7 +82,7 @@ impl<'c> Subcommand<'c> for List {
             online_versions_str.push('\n');
         }
 
-        let hint = if filter.is_none() {
+        let hint = if filter_option.is_none() {
             String::from("Specify a version range to show more results.\ne.g. `nvm ls 12`")
         } else {
             String::new()

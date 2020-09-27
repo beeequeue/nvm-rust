@@ -4,7 +4,10 @@ use std::os::unix::fs::symlink;
 use std::os::windows::fs::symlink_dir;
 use std::{
     env::set_var,
-    fs::{canonicalize, copy, create_dir_all, read_dir, read_link, remove_dir_all, remove_file},
+    fs::{
+        canonicalize, copy, create_dir_all, read_dir, read_link, remove_dir_all, remove_file,
+        symlink_metadata,
+    },
     path::PathBuf,
 };
 
@@ -19,8 +22,15 @@ pub fn integration_dir() -> PathBuf {
     canonicalize(path).expect("canonicalize integration dir path")
 }
 
-pub fn required_files<'a>() -> [&'a str; 4] {
-    ["node", "node.cmd", "npm", "npm.cmd"]
+// TODO: Rework unix shims
+#[cfg(unix)]
+pub fn required_files<'a>() -> [&'a str; 3] {
+    ["bin/node", "bin/npm", "bin/npx"]
+}
+
+#[cfg(windows)]
+pub fn required_files<'a>() -> [&'a str; 5] {
+    ["node.exe", "npm", "npm.cmd", "npx", "npx.cmd"]
 }
 
 fn ensure_dir_exists(path: &PathBuf) -> Result<()> {
@@ -96,13 +106,13 @@ pub fn create_shim(version_str: &str) -> Result<()> {
 #[derive(PartialEq, Eq)]
 struct OutputResult(bool, bool);
 
-pub fn assert_outputs(result: &Assert, stdout: &str, stderr: &str) -> Result<()> {
+pub fn assert_outputs_contain(result: &Assert, stdout: &str, stderr: &str) -> Result<()> {
     let output = result.get_output().to_owned();
     let output_stderr = String::from_utf8(output.stderr)?;
     let output_stdout = String::from_utf8(output.stdout)?;
     let result = OutputResult(
-        output_stdout.trim() == stdout,
-        output_stderr.trim().starts_with(stderr),
+        output_stdout.trim().contains(stdout),
+        output_stderr.trim().contains(stderr),
     );
 
     if result != OutputResult(true, true) {
@@ -149,7 +159,8 @@ pub fn assert_version_installed(version_str: &str, installed: bool) -> Result<()
 pub fn assert_version_selected(version_str: &str, selected: bool) -> Result<()> {
     let path = integration_dir().join("shims");
 
-    if path.exists() {
+    // symlink_metadata errors if the path doesn't exist
+    if symlink_metadata(&path).is_ok() {
         let real_path = read_link(path).unwrap();
 
         assert_eq!(

@@ -5,6 +5,7 @@ use crate::config::Config;
 
 pub mod install;
 pub mod list;
+pub mod parse_version;
 pub mod switch;
 pub mod uninstall;
 
