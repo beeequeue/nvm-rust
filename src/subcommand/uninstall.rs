@@ -14,8 +14,8 @@ pub struct Uninstall {}
 impl<'c> Subcommand<'c> for Uninstall {
     fn run(config: &'c Config, matches: &ArgMatches) -> Result<()> {
         let force = matches.is_present("force");
-        let wanted_range =
-            VersionReq::parse_compat(matches.value_of("version").unwrap(), Compat::Npm).unwrap();
+        let input = matches.value_of("version").unwrap();
+        let wanted_range = VersionReq::parse_compat(input, Compat::Npm).unwrap();
 
         if let Some(version) = InstalledNodeVersion::get_matching(config, &wanted_range) {
             if version.is_selected(config) {
@@ -36,7 +36,8 @@ impl<'c> Subcommand<'c> for Uninstall {
             version.uninstall(config)
         } else {
             anyhow::bail!(
-                "Did not find an installed version matching {}",
+                "Did not find an installed version matching `{}`, (parsed as `{}`)",
+                input,
                 wanted_range
             )
         }

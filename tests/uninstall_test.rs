@@ -116,7 +116,7 @@ mod uninstall {
         assert_outputs(
             &result,
             "",
-            "Error: Did not find an installed version matching ^12",
+            "Error: Did not find an installed version matching `12`, (parsed as `>=12.0.0 <13.0.0`)",
         )?;
 
         Result::Ok(())
