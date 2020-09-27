@@ -2,7 +2,7 @@ use std::borrow::Borrow;
 
 use anyhow::Result;
 use clap::ArgMatches;
-use semver::VersionReq;
+use semver::{Compat, VersionReq};
 
 use crate::{
     config::Config,
@@ -19,7 +19,7 @@ impl<'c> Subcommand<'c> for List {
 
         let filter = matches
             .value_of("filter")
-            .map(|version_str| VersionReq::parse(version_str).unwrap());
+            .map(|version_str| VersionReq::parse_compat(version_str, Compat::Npm).unwrap());
 
         let mut installed_versions = InstalledNodeVersion::get_all(config);
         if filter.is_some() {

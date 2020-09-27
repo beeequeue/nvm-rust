@@ -7,7 +7,7 @@ use std::{
 
 use anyhow::{Context, Result};
 use reqwest::Url;
-use semver::{Version, VersionReq};
+use semver::{Compat, Version, VersionReq};
 use serde::Deserialize;
 
 use crate::config::Config;
@@ -18,12 +18,12 @@ pub trait NodeVersion {
 
 impl dyn NodeVersion {
     pub fn is_version_range(value: &str) -> Result<VersionReq> {
-        VersionReq::parse(value).context(value.to_string())
+        VersionReq::parse_compat(value, Compat::Npm).context(value.to_string())
     }
 
     // Filters out relevant major versions. Relevant meaning anything >=10
     pub fn filter_default<V: NodeVersion>(versions: Vec<V>) -> Vec<V> {
-        let relevant_versions = VersionReq::parse(">=10").unwrap();
+        let relevant_versions = VersionReq::parse_compat(">=10", Compat::Npm).unwrap();
         let mut found_major_versions: HashSet<u64> = HashSet::new();
 
         let major_versions = versions
