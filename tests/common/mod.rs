@@ -22,12 +22,12 @@ pub fn integration_dir() -> PathBuf {
 // TODO: Rework unix shims
 #[cfg(unix)]
 pub fn required_files<'a>() -> [&'a str; 3] {
-    ["node", "npm", "npm.cmd"]
+    ["bin/node", "bin/npm", "bin/npx"]
 }
 
 #[cfg(windows)]
 pub fn required_files<'a>() -> [&'a str; 3] {
-    ["node.exe", "npm", "npm.cmd"]
+    ["node.exe", "npm", "npm.cmd", "npx", "npx.cmd"]
 }
 
 fn ensure_dir_exists(path: &PathBuf) -> Result<()> {
