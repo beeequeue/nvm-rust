@@ -54,5 +54,5 @@ jobs:
         with:
           upload_url: https://uploads.github.com/repos/BeeeQueue/nvm-rust/releases/${{ github.event.release.id }}/assets
           asset_path: ${{ matrix.binary }}
-          asset_name: my-artifact.zip
+          asset_name: ${{ matrix.name }}
           asset_content_type: application/octet-stream
