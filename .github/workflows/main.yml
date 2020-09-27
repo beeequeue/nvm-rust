@@ -32,7 +32,7 @@ jobs:
       - run: cargo build --release --all-features --locked
 
       - run: cargo test --release --all-features
-    
+
   clippy:
     name: Clippy
     runs-on: ubuntu-latest
