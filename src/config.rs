@@ -42,16 +42,16 @@ impl Config {
     }
 
     #[cfg(windows)]
-    fn get_default_dir() -> &'static str {
+    fn get_default_dir() -> String {
         if cfg!(target_arch = "x86") {
-            return "C:\\Program Files (x86)\\nvm";
+            return String::from("C:\\Program Files (x86)\\nvm");
         }
 
-        "C:\\Program Files\\nvm"
+        String::from("C:\\Program Files\\nvm")
     }
 
     #[cfg(unix)]
-    fn get_default_dir() -> &'static str {
-        "$HOME/.nvm"
+    fn get_default_dir() -> String {
+        format!("{}/.nvm", env::var("HOME").unwrap())
     }
 }
