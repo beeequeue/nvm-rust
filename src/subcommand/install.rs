@@ -1,10 +1,10 @@
+#[cfg(unix)]
+use std::fs::remove_dir_all;
 #[cfg(windows)]
 use std::fs::File;
 #[cfg(windows)]
 use std::io::copy;
 use std::{borrow::Borrow, fs::create_dir_all, io::Cursor, path::PathBuf};
-#[cfg(unix)]
-use std::{fs::remove_dir_all, io::Error};
 
 use anyhow::{Context, Result};
 use clap::ArgMatches;
@@ -130,6 +130,8 @@ impl<'c> Install<'c> {
                     .join("/n")
             ));
         }
+
+        println!("Extracted to {:?}", version_dir_path);
 
         Result::Ok(())
     }
