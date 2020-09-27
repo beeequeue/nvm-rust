@@ -7,9 +7,7 @@ mod install {
 
     use crate::{
         common,
-        common::{
-            assert_outputs, assert_version_installed, assert_version_selected, install_mock_version,
-        },
+        common::{assert_outputs_contain, assert_version_installed, install_mock_version},
     };
 
     #[test]
@@ -22,7 +20,11 @@ mod install {
         let mut cmd = Command::cargo_bin("nvm-rust").unwrap();
         let result = cmd.arg("install").arg(version_range).assert();
 
-        assert_outputs(&result, "Downloading from https://nodejs.org/dist/v12.7.0/node-v12.7.0-win-x64.zip...\nExtracting...", "")?;
+        assert_outputs_contain(
+            &result,
+            "Downloading from https://nodejs.org/dist/v12.7.0/node-v12.7.0-",
+            "",
+        )?;
         assert_version_installed(version_str, true)?;
 
         Result::Ok(())
@@ -37,7 +39,11 @@ mod install {
         let mut cmd = Command::cargo_bin("nvm-rust").unwrap();
         let result = cmd.arg("install").arg(version_str).assert();
 
-        assert_outputs(&result, "Downloading from https://nodejs.org/dist/v12.18.3/node-v12.18.3-win-x64.zip...\nExtracting...", "")?;
+        assert_outputs_contain(
+            &result,
+            "Downloading from https://nodejs.org/dist/v12.18.3/node-v12.18.3-",
+            "",
+        )?;
         assert_version_installed(version_str, true)?;
 
         Result::Ok(())
@@ -52,7 +58,7 @@ mod install {
         let mut cmd = Command::cargo_bin("nvm-rust").unwrap();
 
         let result = cmd.arg("install").arg(version_str).assert();
-        assert_outputs(&result, "12.18.3 is already installed - skipping...", "")?;
+        assert_outputs_contain(&result, "12.18.3 is already installed - skipping...", "")?;
 
         Result::Ok(())
     }
@@ -66,7 +72,12 @@ mod install {
         let mut cmd = Command::cargo_bin("nvm-rust").unwrap();
 
         let result = cmd.arg("install").arg("-f").arg(version_str).assert();
-        assert_outputs(&result, "Downloading from https://nodejs.org/dist/v12.18.3/node-v12.18.3-win-x64.zip...\nExtracting...", "")?;
+        assert_outputs_contain(
+            &result,
+            "Downloading from https://nodejs.org/dist/v12.18.3/node-v12.18.3-",
+            "",
+        )?;
+        assert_outputs_contain(&result, "Extracting...", "")?;
 
         assert_version_installed(version_str, true)?;
 
@@ -79,7 +90,7 @@ mod install {
         let mut cmd = Command::cargo_bin("nvm-rust").unwrap();
         let result = cmd.arg("install").arg("12.99.99").assert();
 
-        assert_outputs(
+        assert_outputs_contain(
             &result,
             "",
             "Error: Did not find a version matching `12.99.99`, (parsed as `=12.99.99`)",

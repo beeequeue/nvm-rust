@@ -7,7 +7,7 @@ mod uninstall {
 
     use crate::{
         common,
-        common::{assert_outputs, assert_version_installed, assert_version_selected},
+        common::{assert_outputs_contain, assert_version_installed, assert_version_selected},
     };
 
     fn setup_versions(versions: Vec<&str>) -> Result<()> {
@@ -31,7 +31,7 @@ mod uninstall {
         let mut cmd = Command::cargo_bin("nvm-rust").unwrap();
         let result = cmd.arg("uninstall").arg("12").assert();
 
-        assert_outputs(&result, "Uninstalled 12.18.3!", "")?;
+        assert_outputs_contain(&result, "Uninstalled 12.18.3!", "")?;
         assert_version_installed(version_str, false)?;
         assert_version_selected(version_str, false)?;
 
@@ -47,7 +47,7 @@ mod uninstall {
         let mut cmd = Command::cargo_bin("nvm-rust").unwrap();
         let result = cmd.arg("uninstall").arg(version_str).assert();
 
-        assert_outputs(&result, "Uninstalled 12.18.3!", "")?;
+        assert_outputs_contain(&result, "Uninstalled 12.18.3!", "")?;
         assert_version_installed(version_str, false)?;
         assert_version_selected(version_str, false)?;
 
@@ -63,7 +63,7 @@ mod uninstall {
         let mut cmd = Command::cargo_bin("nvm-rust").unwrap();
 
         let result = cmd.arg("uninstall").arg(version_str).assert();
-        assert_outputs(
+        assert_outputs_contain(
             &result,
             "12.18.3 is currently selected.\nAre you sure you want to uninstall it? (y/N)",
             "",
@@ -72,7 +72,7 @@ mod uninstall {
         cmd.write_stdin("y\n");
 
         let result = cmd.assert();
-        assert_outputs(
+        assert_outputs_contain(
             &result,
             "12.18.3 is currently selected.\nAre you sure you want to uninstall it? (y/N)\nUninstalled 12.18.3!",
             "",
@@ -93,7 +93,7 @@ mod uninstall {
         let mut cmd = Command::cargo_bin("nvm-rust").unwrap();
 
         let result = cmd.arg("uninstall").arg(version_str).arg("-f").assert();
-        assert_outputs(
+        assert_outputs_contain(
             &result,
             "12.18.3 is currently selected.\nUninstalled 12.18.3!",
             "",
@@ -113,7 +113,7 @@ mod uninstall {
         let mut cmd = Command::cargo_bin("nvm-rust").unwrap();
         let result = cmd.arg("uninstall").arg("12").assert();
 
-        assert_outputs(
+        assert_outputs_contain(
             &result,
             "",
             "Error: Did not find an installed version matching `12`, (parsed as `>=12.0.0 <13.0.0`)",

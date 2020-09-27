@@ -103,13 +103,13 @@ pub fn create_shim(version_str: &str) -> Result<()> {
 #[derive(PartialEq, Eq)]
 struct OutputResult(bool, bool);
 
-pub fn assert_outputs(result: &Assert, stdout: &str, stderr: &str) -> Result<()> {
+pub fn assert_outputs_contain(result: &Assert, stdout: &str, stderr: &str) -> Result<()> {
     let output = result.get_output().to_owned();
     let output_stderr = String::from_utf8(output.stderr)?;
     let output_stdout = String::from_utf8(output.stdout)?;
     let result = OutputResult(
-        output_stdout.trim() == stdout,
-        output_stderr.trim().starts_with(stderr),
+        output_stdout.trim().contains(stdout),
+        output_stderr.trim().contains(stderr),
     );
 
     if result != OutputResult(true, true) {
