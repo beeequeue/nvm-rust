@@ -42,12 +42,12 @@ impl dyn NodeVersion {
             })
             .collect();
 
-        Self::filter_version_req(major_versions, relevant_versions)
+        Self::filter_version_req(major_versions, &relevant_versions)
     }
 
     pub fn filter_version_req<V: NodeVersion>(
         versions: Vec<V>,
-        version_range: VersionReq,
+        version_range: &VersionReq,
     ) -> Vec<V> {
         versions
             .into_iter()

@@ -19,8 +19,15 @@ pub fn integration_dir() -> PathBuf {
     canonicalize(path).expect("canonicalize integration dir path")
 }
 
-pub fn required_files<'a>() -> [&'a str; 4] {
-    ["node", "node.cmd", "npm", "npm.cmd"]
+// TODO: Rework unix shims
+#[cfg(unix)]
+pub fn required_files<'a>() -> [&'a str; 3] {
+    ["node", "npm", "npm.cmd"]
+}
+
+#[cfg(windows)]
+pub fn required_files<'a>() -> [&'a str; 3] {
+    ["node.exe", "npm", "npm.cmd"]
 }
 
 fn ensure_dir_exists(path: &PathBuf) -> Result<()> {

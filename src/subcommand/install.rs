@@ -149,12 +149,12 @@ impl<'c> Subcommand<'c> for Install<'c> {
     fn run(config: &'c Config, matches: &ArgMatches) -> Result<()> {
         let command = Self { config };
 
-        let wanted_range =
-            VersionReq::parse_compat(matches.value_of("version").unwrap(), Compat::Npm).unwrap();
+        let input = matches.value_of("version").unwrap();
+        let wanted_range = VersionReq::parse_compat(input, Compat::Npm).unwrap();
         let force_install = matches.is_present("force");
 
         let online_versions = OnlineNodeVersion::fetch_all()?;
-        let filtered_versions = NodeVersion::filter_version_req(online_versions, wanted_range);
+        let filtered_versions = NodeVersion::filter_version_req(online_versions, &wanted_range);
         let latest_version: Option<&OnlineNodeVersion> = filtered_versions.first();
 
         if let Some(v) = latest_version {
@@ -163,9 +163,13 @@ impl<'c> Subcommand<'c> for Install<'c> {
                 return Result::Ok(());
             }
 
-            return command.download_and_extract_to(v.borrow());
+            command.download_and_extract_to(v.borrow())
+        } else {
+            anyhow::bail!(
+                "Did not find a version matching `{}`, (parsed as `{}`)",
+                input,
+                wanted_range
+            )
         }
-
-        Result::Ok(())
     }
 }
