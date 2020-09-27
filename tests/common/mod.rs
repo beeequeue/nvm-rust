@@ -26,7 +26,7 @@ pub fn required_files<'a>() -> [&'a str; 3] {
 }
 
 #[cfg(windows)]
-pub fn required_files<'a>() -> [&'a str; 3] {
+pub fn required_files<'a>() -> [&'a str; 5] {
     ["node.exe", "npm", "npm.cmd", "npx", "npx.cmd"]
 }
 
