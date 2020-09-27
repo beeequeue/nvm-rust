@@ -1,0 +1,35 @@
+name: version or publish
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  version-or-publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: cargo login
+        run: cargo login ${{ secrets.crate_token }}
+
+      - name: covector version or publish (publish when no change files present)
+        uses: jbolda/covector/packages/action@covector-v0
+        id: covector
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          command: 'version-or-publish'
+          createRelease: true
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v3
+        if: steps.covector.outputs.commandRan == 'version'
+        with:
+          branch: release
+          title: Release New Version
+          commit-message: "apply version updates"
+          body: ${{ steps.covector.outputs.change }}
