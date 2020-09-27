@@ -33,7 +33,7 @@
         {
           "path": "${ pkg.path }/${ pkg.pkg }-${ pkgFile.version }.crate",
           "name": "${ pkg.pkg }-${ pkgFile.version }.crate"
-        },
+        }
       ]
     }
   },
