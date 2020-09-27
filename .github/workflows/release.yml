@@ -26,8 +26,6 @@ jobs:
             label: Windows
 
     steps:
-      - run: echo "${{ toJson(github.event) }}"
-
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0
