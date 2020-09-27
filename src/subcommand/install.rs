@@ -68,6 +68,16 @@ impl<'c> Install<'c> {
             }
         }
 
+        let extraction_dir = self.config.dir.join(version_str);
+        let extraction_dir = extraction_dir.to_str().unwrap();
+        println!(
+            "Extracted to {}",
+            // Have to remove \\?\ prefix 🤮
+            extraction_dir
+                .strip_prefix("\\\\?\\")
+                .unwrap_or(extraction_dir)
+        );
+
         Result::Ok(())
     }
 
