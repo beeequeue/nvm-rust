@@ -25,7 +25,7 @@ For example:
 
 - `nvm install 12` will install the latest version matching `12`, instead of `12.0.0`.
 - `nvm install "12 <12.18"` will install the latest `12.17.x` version, instead of just giving you an error.
-- `nvm use 12` will use the newest installed `12.x.x` version instead of `12.0.0` (and giving you an error).
+- `nvm use 12` switch use the newest installed `12.x.x` version instead of `12.0.0` (and most likely giving you an error, who has that version installed?).
 
 ### .nvmrc
 
