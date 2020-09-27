@@ -1,5 +1,4 @@
-name: version or publish
-
+name: CD
 on:
   push:
     branches:
@@ -7,6 +6,7 @@ on:
 
 jobs:
   version-or-publish:
+    name: : "Version or Publish"
     runs-on: ubuntu-latest
 
     steps:

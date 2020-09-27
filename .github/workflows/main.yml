@@ -1,6 +1,5 @@
-on: [push]
-
 name: CI
+on: [push]
 
 jobs:
   build_and_test:
@@ -9,6 +8,13 @@ jobs:
     strategy:
       matrix:
         os: [macos-latest, ubuntu-latest, windows-latest]
+        include:
+          - platform: macos-latest
+            binary: target/release/nvm-rust
+          - platform: ubuntu-latest
+            binary: target/release/nvm-rust
+          - platform: windows-latest
+            binary: target/release/nvm-rust.exe
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -37,6 +43,14 @@ jobs:
       - name: "Upload artifacts"
         #if:
         run: echo "${{ github.ref }}"
+
+      - name: "Log built files"
+        #if:
+        run: ls target/release
+
+      - name: "Log built files"
+        #if:
+        run: ls ${{ matrix.binary }}
 
     
   clippy:
