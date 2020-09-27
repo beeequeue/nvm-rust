@@ -14,16 +14,13 @@ jobs:
         include:
           - platform: macos-latest
             binary: target/release/nvm-rust
-            name: nvm
-            label: Mac
+            name: nvm-darwin
           - platform: ubuntu-latest
             binary: target/release/nvm-rust
-            name: nvm
-            label: Linux
+            name: nvm-linux
           - platform: windows-latest
             binary: target/release/nvm-rust.exe
-            name: nvm.exe
-            label: Windows
+            name: nvm-win.exe
 
     steps:
       - uses: actions/checkout@v2
