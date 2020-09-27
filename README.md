@@ -8,7 +8,7 @@ Cross platform nvm that doesn't suck™
 | ---: | :---: | :---: | :---: | 
 | Platforms | [Rust Platforms](https://doc.rust-lang.org/nightly/rustc/platform-support.html#tier-1) | Windows | POSIX |
 | [Range matching](#range-matching) | ✅ | ❌ | ✅ | 
-| .nvmrc | ✅ | ❌ | ✅ | 
+| .nvmrc | 🔧 | ❌ | ✅ | 
 | Node <4 | ❔ | ✅ | ✅ |
 | Disabling nvm temporarily | ❌ | ✅ | ✅ |
 | Caching | ❌ | ❌ | ✅ |
