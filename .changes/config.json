@@ -39,7 +39,8 @@
   },
   "packages": {
     "nvm-rust": {
-      "manager": "rust"
+      "manager": "rust",
+      "path": "."
     }
   }
 }
