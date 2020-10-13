@@ -1,6 +1,6 @@
 [package]
 name = "nvm-rust"
-version = "0.0.0"
+version = "0.0.1"
 authors = [ "BeeeQueue <adam.lj.haglund@gmail.com>" ]
 edition = "2018"
 
