@@ -19,7 +19,7 @@ jobs:
         with:
           toolchain: nightly
           default: true
-      - uses: actions/cache@v2
+      - uses: actions/cache@v2.1.5
         with:
           path: |
             ~/.cargo/registry
