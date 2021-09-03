@@ -2,9 +2,8 @@
 use std::fs::remove_dir_all;
 #[cfg(windows)]
 use std::fs::File;
-#[cfg(windows)]
 use std::io::copy;
-use std::{borrow::Borrow, fs::create_dir_all, io::Cursor, path::PathBuf};
+use std::{borrow::Borrow, fs::create_dir_all, io::Cursor};
 
 use anyhow::{Context, Result};
 use clap::ArgMatches;
@@ -41,19 +40,13 @@ impl<'c> Install<'c> {
             let file_path = item.sanitized_name();
             let file_path = file_path.to_string_lossy();
 
-            let new_path: PathBuf = if let Some(index) = file_path.find('\\') {
-                let mut path = self.config.dir.to_owned();
-                path.push(version_str.clone());
-                path.push(file_path[index + 1..].to_owned());
+            let mut path = self.config.dir.to_owned();
+            path.push(version_str.clone());
 
-                path
-            } else {
-                // This happens if it's the root index, the base folder
-                let mut path = self.config.dir.to_owned();
-                path.push(version_str.clone());
-
-                path
-            };
+            let mut new_path = path;
+            if let Some(index) = file_path.find('\\') {
+                new_path.push(file_path[index + 1..].to_owned());
+            }
 
             if item.is_dir() && !new_path.exists() {
                 create_dir_all(new_path.to_owned()).unwrap_or_else(|_| {
