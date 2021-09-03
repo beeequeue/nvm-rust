@@ -23,7 +23,7 @@ impl<'c> Subcommand<'c> for List {
 
         let mut installed_versions = InstalledNodeVersion::get_all(config);
         if filter_option.is_some() {
-            installed_versions = NodeVersion::filter_version_req(
+            installed_versions = <dyn NodeVersion>::filter_version_req(
                 installed_versions,
                 &filter_option.to_owned().unwrap(),
             );
@@ -58,13 +58,13 @@ impl<'c> Subcommand<'c> for List {
                 if filter_option.is_some() {
                     let limit = if !show_installed { 10 } else { 5 };
 
-                    online_versions = NodeVersion::filter_version_req(
+                    online_versions = <dyn NodeVersion>::filter_version_req(
                         online_versions,
                         &filter_option.to_owned().unwrap(),
                     );
                     online_versions = online_versions[..limit].to_vec();
                 } else {
-                    online_versions = NodeVersion::filter_default(online_versions);
+                    online_versions = <dyn NodeVersion>::filter_default(online_versions);
                 }
 
                 online_versions_str.push_str(
@@ -114,7 +114,7 @@ mod tests {
                 serde_json::from_str(test_data.borrow()).unwrap();
 
             assert_eq!(
-                NodeVersion::filter_default(test_data),
+                <dyn NodeVersion>::filter_default(test_data),
                 vec![
                     OnlineNodeVersion::new(
                         String::from("14.6.0"),
