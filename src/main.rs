@@ -1,5 +1,3 @@
-#![feature(const_fn)]
-
 use anyhow::{Context, Result};
 use clap::{clap_app, crate_version};
 
@@ -27,32 +25,32 @@ fn main() -> Result<()> {
             (about: "List installed and released node versions")
             (@arg installed: -i --installed "Only display installed versions")
             (@arg online: -o --online --available "Only display available versions")
-            (@arg filter: {NodeVersion::is_version_range} "Filter by semantic versions. e.g. `12`, `^10.9`, `>=8.10`, `>=8, <9`")
+            (@arg filter: {<dyn NodeVersion>::is_version_range} "Filter by semantic versions. e.g. `12`, `^10.9`, `>=8.10`, `>=8, <9`")
         )
         (@subcommand install =>
             (alias: "i")
             (about: "Install a new node version")
             (@arg force: -f --force "Install version even if it's already installed")
-            (@arg version: +required {NodeVersion::is_version_range} "A semver range. The latest version matching this range will be installed.")
+            (@arg version: +required {<dyn NodeVersion>::is_version_range} "A semver range. The latest version matching this range will be installed.")
         )
         (@subcommand uninstall =>
             (alias: "u")
             (alias: "r")
             (about: "Uninstall an installed node version")
             (@arg force: -f --force "Skip prompt if uninstalling selected version.")
-            (@arg version: +required {NodeVersion::is_version_range} "A semver range. The latest installed version matching this range will be removed.")
+            (@arg version: +required {<dyn NodeVersion>::is_version_range} "A semver range. The latest installed version matching this range will be removed.")
         )
         (@subcommand use =>
             (alias: "switch")
             (alias: "u")
             (about: "Switch to an installed node version")
-            (@arg version: {NodeVersion::is_version_range} "A semver range. The latest version matching this range will be switched to.\nRespects `.nvmrc` files.")
+            (@arg version: {<dyn NodeVersion>::is_version_range} "A semver range. The latest version matching this range will be switched to.\nRespects `.nvmrc` files.")
         )
         (@subcommand parse_version =>
             (alias: "parse-version")
             (alias: "pv")
             (about: "Echo what a version string will be parsed to.")
-            (@arg version: {NodeVersion::is_version_range} "The semver range to echo the parsed result of.")
+            (@arg version: {<dyn NodeVersion>::is_version_range} "The semver range to echo the parsed result of.")
         )
     );
 

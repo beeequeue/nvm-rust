@@ -2,9 +2,8 @@
 use std::fs::remove_dir_all;
 #[cfg(windows)]
 use std::fs::File;
-#[cfg(windows)]
 use std::io::copy;
-use std::{borrow::Borrow, fs::create_dir_all, io::Cursor, path::PathBuf};
+use std::{borrow::Borrow, fs::create_dir_all, io::Cursor};
 
 use anyhow::{Context, Result};
 use clap::ArgMatches;
@@ -41,30 +40,24 @@ impl<'c> Install<'c> {
             let file_path = item.sanitized_name();
             let file_path = file_path.to_string_lossy();
 
-            let new_path: PathBuf = if let Some(index) = file_path.find('\\') {
-                let mut path = self.config.dir.to_owned();
-                path.push(version_str.clone());
-                path.push(file_path[index + 1..].to_owned());
+            let mut path = self.config.dir.to_owned();
+            path.push(version_str.clone());
 
-                path
-            } else {
-                // This happens if it's the root index, the base folder
-                let mut path = self.config.dir.to_owned();
-                path.push(version_str.clone());
-
-                path
-            };
+            let mut new_path = path;
+            if let Some(index) = file_path.find('\\') {
+                new_path.push(file_path[index + 1..].to_owned());
+            }
 
             if item.is_dir() && !new_path.exists() {
                 create_dir_all(new_path.to_owned()).unwrap_or_else(|_| {
-                    panic!(format!("Could not create new folder: {:?}", new_path))
+                    panic!("Could not create new folder: {:?}", new_path)
                 });
             }
 
             if item.is_file() {
                 let mut file = File::create(&*new_path)?;
                 copy(&mut item, &mut file)
-                    .unwrap_or_else(|_| panic!(format!("Couldn't write to {:?}", new_path)));
+                    .unwrap_or_else(|_| panic!("Couldn't write to {:?}", new_path));
             }
         }
 
@@ -166,7 +159,7 @@ impl<'c> Subcommand<'c> for Install<'c> {
         let force_install = matches.is_present("force");
 
         let online_versions = OnlineNodeVersion::fetch_all()?;
-        let filtered_versions = NodeVersion::filter_version_req(online_versions, &wanted_range);
+        let filtered_versions = <dyn NodeVersion>::filter_version_req(online_versions, &wanted_range);
         let latest_version: Option<&OnlineNodeVersion> = filtered_versions.first();
 
         if let Some(v) = latest_version {
