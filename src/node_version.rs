@@ -16,44 +16,42 @@ pub trait NodeVersion {
     fn version(&self) -> Version;
 }
 
-impl dyn NodeVersion {
-    pub fn is_version_range(value: &str) -> Result<VersionReq> {
-        VersionReq::parse_compat(value, Compat::Npm).context(value.to_string())
-    }
+pub fn is_version_range(value: &str) -> Result<VersionReq> {
+    VersionReq::parse_compat(value, Compat::Npm).context(value.to_string())
+}
 
-    // Filters out relevant major versions. Relevant meaning anything >=10
-    pub fn filter_default<V: NodeVersion>(versions: Vec<V>) -> Vec<V> {
-        let relevant_versions = VersionReq::parse_compat(">=10", Compat::Npm).unwrap();
-        let mut found_major_versions: HashSet<u64> = HashSet::new();
+// Filters out relevant major versions. Relevant meaning anything >=10
+pub fn filter_default<V: NodeVersion>(versions: Vec<V>) -> Vec<V> {
+    let relevant_versions = VersionReq::parse_compat(">=10", Compat::Npm).unwrap();
+    let mut found_major_versions: HashSet<u64> = HashSet::new();
 
-        let major_versions = versions
-            .into_iter()
-            .filter(|version| {
-                let version = version.version();
-                let major = version.major;
+    let major_versions = versions
+        .into_iter()
+        .filter(|version| {
+            let version = version.version();
+            let major = version.major;
 
-                if found_major_versions.contains(major.borrow()) {
-                    return false;
-                }
+            if found_major_versions.contains(major.borrow()) {
+                return false;
+            }
 
-                found_major_versions.insert(major);
+            found_major_versions.insert(major);
 
-                true
-            })
-            .collect();
+            true
+        })
+        .collect();
 
-        Self::filter_version_req(major_versions, &relevant_versions)
-    }
+    filter_version_req(major_versions, &relevant_versions)
+}
 
-    pub fn filter_version_req<V: NodeVersion>(
-        versions: Vec<V>,
-        version_range: &VersionReq,
-    ) -> Vec<V> {
-        versions
-            .into_iter()
-            .filter(|version| version_range.matches(version.version().borrow()))
-            .collect()
-    }
+pub fn filter_version_req<V: NodeVersion>(
+    versions: Vec<V>,
+    version_range: &VersionReq,
+) -> Vec<V> {
+    versions
+        .into_iter()
+        .filter(|version| version_range.matches(version.version().borrow()))
+        .collect()
 }
 
 /// Handles `vX.X.X` prefixes

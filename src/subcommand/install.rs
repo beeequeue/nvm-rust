@@ -1,9 +1,9 @@
-#[cfg(unix)]
-use std::fs::remove_dir_all;
+use std::{borrow::Borrow, fs::create_dir_all, io::Cursor};
 #[cfg(windows)]
 use std::fs::File;
+#[cfg(unix)]
+use std::fs::remove_dir_all;
 use std::io::copy;
-use std::{borrow::Borrow, fs::create_dir_all, io::Cursor};
 
 use anyhow::{Context, Result};
 use clap::ArgMatches;
@@ -18,6 +18,7 @@ use zip::ZipArchive;
 
 use crate::{
     config::Config,
+    node_version,
     node_version::{InstalledNodeVersion, NodeVersion, OnlineNodeVersion},
     subcommand::Subcommand,
 };
@@ -159,7 +160,7 @@ impl<'c> Subcommand<'c> for Install<'c> {
         let force_install = matches.is_present("force");
 
         let online_versions = OnlineNodeVersion::fetch_all()?;
-        let filtered_versions = <dyn NodeVersion>::filter_version_req(online_versions, &wanted_range);
+        let filtered_versions = node_version::filter_version_req(online_versions, &wanted_range);
         let latest_version: Option<&OnlineNodeVersion> = filtered_versions.first();
 
         if let Some(v) = latest_version {

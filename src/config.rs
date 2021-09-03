@@ -14,7 +14,7 @@ pub struct Config {
 }
 
 impl Config {
-    pub fn from_env_and_args(_args: &[Arg]) -> Self {
+    pub fn from_env_and_args(_args: impl Iterator) -> Self {
         let dir = env::var("NVM_DIR").ok();
         let dir = PathBuf::from(dir.unwrap_or_else(|| Self::get_default_dir().to_string()));
 

@@ -6,6 +6,7 @@ use semver::{Compat, VersionReq};
 
 use crate::{
     config::Config,
+    node_version,
     node_version::{InstalledNodeVersion, NodeVersion, OnlineNodeVersion},
     subcommand::Subcommand,
 };
@@ -23,7 +24,7 @@ impl<'c> Subcommand<'c> for List {
 
         let mut installed_versions = InstalledNodeVersion::get_all(config);
         if filter_option.is_some() {
-            installed_versions = <dyn NodeVersion>::filter_version_req(
+            installed_versions = node_version::filter_version_req(
                 installed_versions,
                 &filter_option.to_owned().unwrap(),
             );
@@ -58,13 +59,13 @@ impl<'c> Subcommand<'c> for List {
                 if filter_option.is_some() {
                     let limit = if !show_installed { 10 } else { 5 };
 
-                    online_versions = <dyn NodeVersion>::filter_version_req(
+                    online_versions = node_version::filter_version_req(
                         online_versions,
                         &filter_option.to_owned().unwrap(),
                     );
                     online_versions = online_versions[..limit].to_vec();
                 } else {
-                    online_versions = <dyn NodeVersion>::filter_default(online_versions);
+                    online_versions = node_version::filter_default(online_versions);
                 }
 
                 online_versions_str.push_str(
@@ -105,7 +106,8 @@ mod tests {
     mod filter_default {
         use std::{borrow::Borrow, fs};
 
-        use super::super::{NodeVersion, OnlineNodeVersion};
+        use super::super::node_version;
+        use super::super::{OnlineNodeVersion};
 
         #[test]
         fn filters_correctly() {
@@ -114,7 +116,7 @@ mod tests {
                 serde_json::from_str(test_data.borrow()).unwrap();
 
             assert_eq!(
-                <dyn NodeVersion>::filter_default(test_data),
+                node_version::filter_default(test_data),
                 vec![
                     OnlineNodeVersion::new(
                         String::from("14.6.0"),
