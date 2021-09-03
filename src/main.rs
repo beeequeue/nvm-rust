@@ -1,7 +1,7 @@
 use anyhow::Result;
 use clap::{AppSettings, Clap};
 
-use config::Config;
+use config::OldConfig;
 use subcommand::{install::Install, list::{List,ListCommand}, switch::Switch, uninstall::Uninstall};
 
 mod config;
@@ -35,7 +35,7 @@ struct NewConfig {
 fn main() -> Result<()> {
     let matches: NewConfig = NewConfig::parse();
 
-    let config = Config::from_env_and_args();
+    let config = OldConfig::from_env_and_args();
 
     if matches.verbose > 0 {
         println!("{:#?}\n", config);

@@ -4,7 +4,7 @@ use anyhow::Result;
 use clap::{Clap, ArgMatches};
 use semver::{Compat, VersionReq};
 
-use crate::{config::Config, node_version, node_version::{InstalledNodeVersion, NodeVersion, OnlineNodeVersion}, subcommand::Subcommand};
+use crate::{config::OldConfig, node_version, node_version::{InstalledNodeVersion, NodeVersion, OnlineNodeVersion}, subcommand::Subcommand};
 
 /// List installed and released node versions
 #[derive(Clap, Debug)]
@@ -21,7 +21,7 @@ pub struct ListCommand {
 pub struct List;
 
 impl<'c> Subcommand<'c> for List {
-    fn run(config: &Config, matches: &ArgMatches) -> Result<()> {
+    fn run(config: &OldConfig, matches: &ArgMatches) -> Result<()> {
         let show_installed = !matches.is_present("online");
         let show_online = !matches.is_present("installed");
 

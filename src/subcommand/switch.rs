@@ -13,13 +13,13 @@ use clap::ArgMatches;
 use semver::{Compat, Version, VersionReq};
 
 use crate::{
-    config::Config,
+    config::OldConfig,
     node_version::{InstalledNodeVersion, NodeVersion},
     subcommand::Subcommand,
 };
 
 pub struct Switch<'c> {
-    config: &'c Config,
+    config: &'c OldConfig,
 }
 
 impl<'c> Switch<'c> {
@@ -68,7 +68,7 @@ impl<'c> Switch<'c> {
 }
 
 impl<'c> Subcommand<'c> for Switch<'c> {
-    fn run(config: &'c Config, matches: &ArgMatches) -> Result<()> {
+    fn run(config: &'c OldConfig, matches: &ArgMatches) -> Result<()> {
         let command = Self { config };
 
         let range: Option<VersionReq>;

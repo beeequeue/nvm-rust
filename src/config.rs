@@ -8,13 +8,13 @@ use std::{
 use clap::Arg;
 
 #[derive(Debug)]
-pub struct Config {
+pub struct OldConfig {
     pub dir: PathBuf,
     pub shims_dir: PathBuf,
 }
 
-impl Config {
-    pub fn from_env_and_args(_args: impl Iterator) -> Self {
+impl OldConfig {
+    pub fn from_env_and_args() -> Self {
         let dir = env::var("NVM_DIR").ok();
         let dir = PathBuf::from(dir.unwrap_or_else(|| Self::get_default_dir().to_string()));
 
@@ -22,7 +22,7 @@ impl Config {
 
         let dir = canonicalize(dir).expect("Could not resolve nvm dir path");
 
-        Config {
+        OldConfig {
             shims_dir: dir.join("shims"),
             dir,
         }

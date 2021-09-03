@@ -10,7 +10,7 @@ use reqwest::Url;
 use semver::{Compat, Version, VersionReq};
 use serde::Deserialize;
 
-use crate::config::Config;
+use crate::config::OldConfig;
 
 pub trait NodeVersion {
     fn version(&self) -> Version;
@@ -146,17 +146,17 @@ pub struct InstalledNodeVersion {
 impl InstalledNodeVersion {
     // Properties
 
-    pub fn get_dir_path(&self, config: &Config) -> PathBuf {
+    pub fn get_dir_path(&self, config: &OldConfig) -> PathBuf {
         config.dir.join(self.version().to_string())
     }
 
-    pub fn is_installed(config: &Config, version: &Version) -> bool {
+    pub fn is_installed(config: &OldConfig, version: &Version) -> bool {
         Self::get_all(config)
             .iter()
             .any(|v| v.version().eq(version))
     }
 
-    pub fn is_selected(&self, config: &Config) -> bool {
+    pub fn is_selected(&self, config: &OldConfig) -> bool {
         let path = config.shims_dir.to_owned();
 
         if !path.exists() {
@@ -176,7 +176,7 @@ impl InstalledNodeVersion {
 
     // Functions
 
-    pub fn uninstall(self, config: &Config) -> Result<()> {
+    pub fn uninstall(self, config: &OldConfig) -> Result<()> {
         remove_dir_all(self.get_dir_path(config))?;
 
         println!("Uninstalled {}!", self.version());
@@ -184,7 +184,7 @@ impl InstalledNodeVersion {
     }
 
     /// Checks that all the required files are present in the installation dir
-    pub fn validate(&self, config: &Config) -> Result<()> {
+    pub fn validate(&self, config: &OldConfig) -> Result<()> {
         let base_path = config.dir.to_owned();
         let version_dir: PathBuf = [base_path.to_str().unwrap(), ""].iter().collect();
 
@@ -205,12 +205,12 @@ impl InstalledNodeVersion {
 
     // Static functions
 
-    pub fn deselect(config: &Config) -> Result<()> {
+    pub fn deselect(config: &OldConfig) -> Result<()> {
         remove_dir_all(config.shims_dir.to_owned()).map_err(anyhow::Error::from)
     }
 
     /// Returns all the installed, valid node versions in `Config.dir`
-    pub fn get_all(config: &Config) -> Vec<InstalledNodeVersion> {
+    pub fn get_all(config: &OldConfig) -> Vec<InstalledNodeVersion> {
         let base_path = config.dir.to_owned();
         let mut version_dirs: Vec<Version> = vec![];
 
@@ -247,7 +247,7 @@ impl InstalledNodeVersion {
     }
 
     /// Returns the latest, installed version matching the version range
-    pub fn get_matching(config: &Config, range: &VersionReq) -> Option<InstalledNodeVersion> {
+    pub fn get_matching(config: &OldConfig, range: &VersionReq) -> Option<InstalledNodeVersion> {
         Self::get_all(config)
             .iter()
             .find(|inv| range.matches(inv.version().borrow()))

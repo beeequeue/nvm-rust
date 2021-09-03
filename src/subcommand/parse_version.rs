@@ -2,12 +2,12 @@ use anyhow::Result;
 use clap::ArgMatches;
 use semver::{Compat, VersionReq};
 
-use crate::{config::Config, subcommand::Subcommand};
+use crate::{config::OldConfig, subcommand::Subcommand};
 
 pub struct ParseVersion;
 
 impl<'c> Subcommand<'c> for ParseVersion {
-    fn run(_config: &'c Config, matches: &ArgMatches) -> Result<()> {
+    fn run(_config: &'c OldConfig, matches: &ArgMatches) -> Result<()> {
         let input = matches.value_of("version").unwrap();
 
         match VersionReq::parse_compat(input, Compat::Npm) {

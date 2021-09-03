@@ -17,14 +17,14 @@ use tar::{Archive, Unpacked};
 use zip::ZipArchive;
 
 use crate::{
-    config::Config,
+    config::OldConfig,
     node_version,
     node_version::{InstalledNodeVersion, NodeVersion, OnlineNodeVersion},
     subcommand::Subcommand,
 };
 
 pub struct Install<'c> {
-    config: &'c Config,
+    config: &'c OldConfig,
 }
 
 impl<'c> Install<'c> {
@@ -152,7 +152,7 @@ impl<'c> Install<'c> {
 }
 
 impl<'c> Subcommand<'c> for Install<'c> {
-    fn run(config: &'c Config, matches: &ArgMatches) -> Result<()> {
+    fn run(config: &'c OldConfig, matches: &ArgMatches) -> Result<()> {
         let command = Self { config };
 
         let input = matches.value_of("version").unwrap();

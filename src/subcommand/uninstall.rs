@@ -3,7 +3,7 @@ use clap::ArgMatches;
 use semver::{Compat, VersionReq};
 
 use crate::{
-    config::Config,
+    config::OldConfig,
     node_version::{InstalledNodeVersion, NodeVersion},
     subcommand::Subcommand,
     utils,
@@ -12,7 +12,7 @@ use crate::{
 pub struct Uninstall {}
 
 impl<'c> Subcommand<'c> for Uninstall {
-    fn run(config: &'c Config, matches: &ArgMatches) -> Result<()> {
+    fn run(config: &'c OldConfig, matches: &ArgMatches) -> Result<()> {
         let force = matches.is_present("force");
         let input = matches.value_of("version").unwrap();
         let wanted_range = VersionReq::parse_compat(input, Compat::Npm).unwrap();
