@@ -1,15 +1,22 @@
 use std::borrow::Borrow;
 
 use anyhow::Result;
-use clap::ArgMatches;
+use clap::{Clap, ArgMatches};
 use semver::{Compat, VersionReq};
 
-use crate::{
-    config::Config,
-    node_version,
-    node_version::{InstalledNodeVersion, NodeVersion, OnlineNodeVersion},
-    subcommand::Subcommand,
-};
+use crate::{config::Config, node_version, node_version::{InstalledNodeVersion, NodeVersion, OnlineNodeVersion}, subcommand::Subcommand};
+
+/// List installed and released node versions
+#[derive(Clap, Debug)]
+#[clap(alias = "ls")]
+pub struct ListCommand {
+    #[clap(short, long)]
+    installed: Option<bool>,
+    #[clap(short, long)]
+    online: Option<bool>,
+    #[clap(short, long, validator = node_version::is_version_range)]
+    filter: VersionReq,
+}
 
 pub struct List;
 
@@ -106,8 +113,8 @@ mod tests {
     mod filter_default {
         use std::{borrow::Borrow, fs};
 
+        use super::super::OnlineNodeVersion;
         use super::super::node_version;
-        use super::super::{OnlineNodeVersion};
 
         #[test]
         fn filters_correctly() {
