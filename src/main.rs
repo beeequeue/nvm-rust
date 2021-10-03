@@ -103,6 +103,7 @@ fn main() -> Result<()> {
     match config.command {
         Subcommands::List(ref options) => ListCommand::run(&config, options),
         Subcommands::ParseVersion(ref options) => ParseVersionCommand::run(&config, options),
-        _ => Result::Ok(())
+        #[allow(unreachable_patterns)]
+        _ => Result::Ok(()),
     }
 }
