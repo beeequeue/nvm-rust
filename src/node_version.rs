@@ -1,6 +1,6 @@
 use std::{
     borrow::Borrow,
-    collections::HashSet,
+    collections::{HashMap, HashSet},
     fs::{read_link, remove_dir_all},
     path::PathBuf,
 };
@@ -10,6 +10,7 @@ use reqwest::Url;
 use semver::{Compat, Version, VersionReq};
 use serde::Deserialize;
 
+use crate::Config;
 use crate::old_config::OldConfig;
 
 pub trait NodeVersion {
@@ -50,8 +51,21 @@ pub fn filter_version_req<V: NodeVersion>(
 ) -> Vec<V> {
     versions
         .into_iter()
-        .filter(|version| version_range.matches(version.version().borrow()))
+        .filter(|version| version_range.matches(&version.version()))
         .collect()
+}
+
+pub fn get_latest_of_each_major<'p, V: NodeVersion>(versions: &'p Vec<V>) -> HashMap<u64, &'p V> {
+    let mut map: HashMap<u64, &'p V> = HashMap::new();
+
+    for version in versions.iter() {
+        let entry = map.get_mut(&version.version().major);
+        if entry.is_some() && version.version().lt(&entry.unwrap().version()) { continue; }
+
+        map.insert(version.version().major, version);
+    }
+
+    map
 }
 
 /// Handles `vX.X.X` prefixes
@@ -127,6 +141,12 @@ impl OnlineNodeVersion {
             release_date,
             files,
         }
+    }
+}
+
+impl ToString for OnlineNodeVersion {
+    fn to_string(&self) -> String {
+        self.version_str.clone()
     }
 }
 
@@ -209,7 +229,41 @@ impl InstalledNodeVersion {
         remove_dir_all(config.shims_dir.to_owned()).map_err(anyhow::Error::from)
     }
 
+    pub fn list(config: &Config) -> Vec<InstalledNodeVersion> {
+        let mut version_dirs: Vec<Version> = vec![];
+
+        for entry in config.get_versions_dir().read_dir().expect("Failed to read nvm dir") {
+            if entry.is_err() {
+                println!("Could not read {:?}", entry);
+                continue;
+            }
+
+            let entry = entry.unwrap();
+            let result = parse_version_str(String::from(entry.file_name().to_string_lossy()));
+
+            if let Result::Ok(version) = result {
+                version_dirs.push(version);
+            }
+        }
+
+        version_dirs.sort();
+        version_dirs.reverse();
+
+        version_dirs
+            .iter()
+            .map(|version| {
+                let version_str = version.to_string();
+
+                InstalledNodeVersion {
+                    version_str: version_str.clone(),
+                    path: config.get_versions_dir().join(&version_str),
+                }
+            })
+            .collect()
+    }
+
     /// Returns all the installed, valid node versions in `Config.dir`
+    #[deprecated]
     pub fn get_all(config: &OldConfig) -> Vec<InstalledNodeVersion> {
         let base_path = config.dir.to_owned();
         let mut version_dirs: Vec<Version> = vec![];
@@ -252,6 +306,12 @@ impl InstalledNodeVersion {
             .iter()
             .find(|inv| range.matches(inv.version().borrow()))
             .map(|inv| inv.to_owned())
+    }
+}
+
+impl ToString for InstalledNodeVersion {
+    fn to_string(&self) -> String {
+        self.version_str.clone()
     }
 }
 

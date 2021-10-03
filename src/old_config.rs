@@ -5,8 +5,6 @@ use std::{
     path::PathBuf,
 };
 
-use clap::Arg;
-
 #[derive(Debug)]
 pub struct OldConfig {
     pub dir: PathBuf,

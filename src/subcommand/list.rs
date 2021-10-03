@@ -1,108 +1,84 @@
-use std::borrow::Borrow;
+use std::collections::HashMap;
+use std::ops::Deref;
 
 use anyhow::Result;
-use clap::{Clap, ArgMatches};
-use semver::{Compat, VersionReq};
+use clap::{AppSettings, Clap};
+use semver::VersionReq;
 
-use crate::{Config, old_config::OldConfig, node_version, node_version::{InstalledNodeVersion, NodeVersion, OnlineNodeVersion}, subcommand::Subcommand};
+use crate::{Config, node_version, node_version::{InstalledNodeVersion, NodeVersion, OnlineNodeVersion}};
+use crate::actions::Action;
+
+enum VersionStatus {
+    Outdated(OnlineNodeVersion),
+    Latest,
+    Unknown,
+}
+
+fn emoji_from(status: &VersionStatus) -> char {
+    match status {
+        VersionStatus::Outdated(_) => '⏫',
+        _ => '✅',
+    }
+}
+
+fn latest_version_string_from(status: &VersionStatus) -> String {
+    match status {
+        VersionStatus::Outdated(version) => format!("-> {}", version.to_string()),
+        VersionStatus::Latest => "".to_string(),
+        _ => "-> unknown".to_string(),
+    }
+}
 
 /// List installed and released node versions
 #[derive(Clap, Debug)]
-#[clap(alias = "ls")]
+#[clap(
+about = "List installed and released node versions",
+alias = "ls",
+setting = AppSettings::ColoredHelp
+)]
 pub struct ListCommand {
+    /// Only display installed versions
     #[clap(short, long)]
-    installed: Option<bool>,
-    #[clap(short, long)]
-    online: Option<bool>,
+    pub installed: Option<bool>,
+    /// Only display available versions
+    #[clap(short, long, takes_value(false))]
+    pub online: Option<bool>,
+    /// Filter by semantic versions.
+    ///
+    /// `12`, `^10.9`, `>=8.10`, `>=8, <9`
     #[clap(short, long, validator = node_version::is_version_range)]
-    filter: VersionReq,
+    pub filter: Option<VersionReq>,
 }
 
-pub struct List;
+impl Action<ListCommand> for ListCommand {
+    fn run(config: &Config, options: &ListCommand) -> Result<()> {
+        let mut installed_versions = InstalledNodeVersion::list(config);
 
-impl<'c> Subcommand<'c> for List {
-    fn run(config: &OldConfig, matches: &ArgMatches) -> Result<()> {
-        let show_installed = !matches.is_present("online");
-        let show_online = !matches.is_present("installed");
-
-        let filter_option = matches
-            .value_of("filter")
-            .map(|version_str| VersionReq::parse_compat(version_str, Compat::Npm).unwrap());
-
-        let mut installed_versions = InstalledNodeVersion::get_all(config);
-        if filter_option.is_some() {
+        // Use filter option if it was passed
+        if let Some(filter) = &options.filter {
             installed_versions = node_version::filter_version_req(
                 installed_versions,
-                &filter_option.to_owned().unwrap(),
+                filter,
             );
         }
 
-        let mut installed_versions_str = String::new();
-
-        if show_installed {
-            installed_versions_str = String::from("Installed versions:\n");
-
-            installed_versions_str.push_str(
-                installed_versions
-                    .into_iter()
-                    .map(|version| format!("{:15}", version.version()))
-                    .collect::<Vec<String>>()
-                    .join("\n")
-                    .borrow(),
-            );
-
-            // For formatting
-            if show_installed && show_online {
-                installed_versions_str.push('\n');
-            }
+        let mut latest_per_major: HashMap<u64, &OnlineNodeVersion> = HashMap::new();
+        let online_versions = OnlineNodeVersion::fetch_all()?;
+        if !online_versions.is_empty() {
+            latest_per_major = node_version::get_latest_of_each_major(&online_versions);
         }
 
-        let mut online_versions_str = String::new();
+        let lines: Vec<String> = installed_versions.iter().map(|version| {
+            let version_status = match latest_per_major.get(&version.version().major) {
+                Some(latest) if latest.version().gt(&version.version()) => VersionStatus::Outdated(latest.deref().clone()),
+                Some(_) => VersionStatus::Latest,
+                None => VersionStatus::Unknown,
+            };
 
-        if show_online {
-            online_versions_str = String::from("Available for download:\n");
+            format!("{} {} {}", emoji_from(&version_status), version.to_string(), latest_version_string_from(&version_status))
+        }).collect();
 
-            if let Result::Ok(mut online_versions) = OnlineNodeVersion::fetch_all() {
-                if filter_option.is_some() {
-                    let limit = if !show_installed { 10 } else { 5 };
-
-                    online_versions = node_version::filter_version_req(
-                        online_versions,
-                        &filter_option.to_owned().unwrap(),
-                    );
-                    online_versions = online_versions[..limit].to_vec();
-                } else {
-                    online_versions = node_version::filter_default(online_versions);
-                }
-
-                online_versions_str.push_str(
-                    online_versions
-                        .into_iter()
-                        .map(|version| format!("{:15}{}", version.version(), version.release_date))
-                        .collect::<Vec<String>>()
-                        .join("\n")
-                        .borrow(),
-                );
-            } else {
-                online_versions_str = String::from("Could not fetch versions...");
-            }
-
-            online_versions_str.push('\n');
-        }
-
-        let hint = if filter_option.is_none() {
-            String::from("Specify a version range to show more results.\ne.g. `nvm ls 12`")
-        } else {
-            String::new()
-        };
-
-        let output_str = format!(
-            "{}\n{}\n{}",
-            installed_versions_str, online_versions_str, hint
-        );
-
-        println!("{}", output_str.trim());
-
+        println!("{}", lines.join("\n"));
         Result::Ok(())
     }
 }
@@ -113,8 +89,8 @@ mod tests {
     mod filter_default {
         use std::{borrow::Borrow, fs};
 
-        use super::super::OnlineNodeVersion;
         use super::super::node_version;
+        use super::super::OnlineNodeVersion;
 
         #[test]
         fn filters_correctly() {
