@@ -1,4 +1,5 @@
-use std::path::PathBuf;
+use std::fs::create_dir_all;
+use std::path::{Path, PathBuf};
 
 use anyhow::Result;
 use clap::{AppSettings, Clap, ValueHint};
@@ -57,32 +58,43 @@ impl Config {
 
     /// Path to directory containing node versions
     fn get_versions_dir(&self) -> PathBuf {
-        // self.get_dir().join("versions")
-        self.get_dir()
+        self.get_dir().join("versions")
     }
 
     #[cfg(windows)]
     fn default_dir() -> PathBuf {
-        if cfg!(target_arch = "x86") {
-            return "C:\\Program Files (x86)\\nvm".into();
-        }
-
-        "C:\\Program Files\\nvm".into()
+        dirs::data_local_dir().unwrap().join("nvm-rust")
     }
 
     #[cfg(unix)]
     fn default_dir() -> String {
-        format!("{}/.nvm", env::var("HOME").unwrap())
+        dirs::home_dir().unwrap().join("nvm-rust")
+    }
+}
+
+fn ensure_dir_exists(path: &Path) {
+    if !path.exists() {
+        create_dir_all(path.to_path_buf())
+            .unwrap_or_else(|err| panic!("Could not create {:?} - {}", path, err));
+
+        println!("Created nvm dir at {:?}", path);
+    }
+
+    if !path.is_dir() {
+        panic!("{:?} is not a directory! Please rename it.", path)
     }
 }
 
 fn main() -> Result<()> {
-    let mut matches: Config = Config {
+    let config: Config = Config {
         ..Config::parse()
     };
-    println!("{:?}", matches);
 
-    match matches.command {
-        Subcommands::List(ref options) => ListCommand::run(&matches, options),
+    ensure_dir_exists(&config.get_dir());
+    ensure_dir_exists(&config.get_shims_dir());
+    ensure_dir_exists(&config.get_versions_dir());
+
+    match config.command {
+        Subcommands::List(ref options) => ListCommand::run(&config, options),
     }
 }
