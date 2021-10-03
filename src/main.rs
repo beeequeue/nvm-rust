@@ -3,10 +3,9 @@ use std::path::PathBuf;
 use anyhow::Result;
 use clap::{AppSettings, Clap};
 
-use config::OldConfig;
 use subcommand::{install::Install, list::{List,ListCommand}, switch::Switch, uninstall::Uninstall};
 
-mod config;
+mod old_config;
 mod node_version;
 mod subcommand;
 mod utils;
@@ -47,10 +46,7 @@ pub struct Config {
 fn main() -> Result<()> {
     let matches: Config = Config::parse();
 
-    let config = OldConfig::from_env_and_args();
 
-    if matches.verbose > 0 {
-        println!("{:#?}\n", config);
     }
 
     match matches.command {

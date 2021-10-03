@@ -3,7 +3,7 @@ use clap::ArgMatches;
 use semver::{Compat, VersionReq};
 
 use crate::{
-    config::OldConfig,
+    old_config::OldConfig,
     node_version::{InstalledNodeVersion, NodeVersion},
     subcommand::Subcommand,
     utils,

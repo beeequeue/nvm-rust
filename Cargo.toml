@@ -1,5 +1,3 @@
-cargo-features = ["edition2021"]
-
 [package]
 name = "nvm-rust"
 version = "0.1.0"

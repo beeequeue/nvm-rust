@@ -17,7 +17,7 @@ use tar::{Archive, Unpacked};
 use zip::ZipArchive;
 
 use crate::{
-    config::OldConfig,
+    old_config::OldConfig,
     node_version,
     node_version::{InstalledNodeVersion, NodeVersion, OnlineNodeVersion},
     subcommand::Subcommand,

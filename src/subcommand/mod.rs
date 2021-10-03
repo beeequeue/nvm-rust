@@ -1,7 +1,7 @@
 use anyhow::Result;
 use clap::ArgMatches;
 
-use crate::config::OldConfig;
+use crate::old_config::OldConfig;
 
 pub mod install;
 pub mod list;

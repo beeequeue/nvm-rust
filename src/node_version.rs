@@ -10,7 +10,7 @@ use reqwest::Url;
 use semver::{Compat, Version, VersionReq};
 use serde::Deserialize;
 
-use crate::config::OldConfig;
+use crate::old_config::OldConfig;
 
 pub trait NodeVersion {
     fn version(&self) -> Version;

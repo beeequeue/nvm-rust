@@ -2,7 +2,7 @@ use anyhow::Result;
 use clap::ArgMatches;
 use semver::{Compat, VersionReq};
 
-use crate::{config::OldConfig, subcommand::Subcommand};
+use crate::{old_config::OldConfig, subcommand::Subcommand};
 
 pub struct ParseVersion;
 
