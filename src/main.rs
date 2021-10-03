@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 use anyhow::Result;
 use clap::{AppSettings, Clap};
 
@@ -19,8 +21,18 @@ enum Subcommands {
 }
 
 #[derive(Clap)]
-#[clap(setting = AppSettings::ColoredHelp)]
+#[clap(
+    name = "nvm(-rust)",
+    about = "Node Version Manager (but better, and in Rust)",
+    setting = AppSettings::ColoredHelp
+)]
 pub struct Config {
+    /// Installation directory
+    #[clap(short, long, env("NVM_DIR"))]
+    dir: PathBuf,
+    /// bin directory
+    #[clap(short, long, env("NVM_SHIMS_DIR"))]
+    shims_dir: PathBuf,
     /// Level of verbosity, can be used multiple times
     #[clap(short, long, parse(from_occurrences))]
     verbose: i32,
