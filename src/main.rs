@@ -20,7 +20,7 @@ enum Subcommands {
 
 #[derive(Clap)]
 #[clap(setting = AppSettings::ColoredHelp)]
-struct NewConfig {
+pub struct Config {
     /// Level of verbosity, can be used multiple times
     #[clap(short, long, parse(from_occurrences))]
     verbose: i32,
@@ -33,7 +33,7 @@ struct NewConfig {
 }
 
 fn main() -> Result<()> {
-    let matches: NewConfig = NewConfig::parse();
+    let matches: Config = Config::parse();
 
     let config = OldConfig::from_env_and_args();
 
