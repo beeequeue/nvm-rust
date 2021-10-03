@@ -1,10 +1,10 @@
 use anyhow::Result;
 use clap::ArgMatches;
-use semver::{Compat, VersionReq};
+use node_semver::Range;
 
 use crate::{
-    old_config::OldConfig,
     node_version::{InstalledNodeVersion, NodeVersion},
+    old_config::OldConfig,
     subcommand::Subcommand,
     utils,
 };
@@ -15,7 +15,7 @@ impl<'c> Subcommand<'c> for Uninstall {
     fn run(config: &'c OldConfig, matches: &ArgMatches) -> Result<()> {
         let force = matches.is_present("force");
         let input = matches.value_of("version").unwrap();
-        let wanted_range = VersionReq::parse_compat(input, Compat::Npm).unwrap();
+        let wanted_range = Range::parse(input).unwrap();
 
         if let Some(version) = InstalledNodeVersion::get_matching(config, &wanted_range) {
             if version.is_selected(config) {

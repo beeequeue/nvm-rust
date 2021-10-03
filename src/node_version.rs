@@ -6,24 +6,23 @@ use std::{
 };
 
 use anyhow::{Context, Result};
+use node_semver::{Range, Version};
 use reqwest::Url;
-use semver::{Compat, Version, VersionReq};
 use serde::Deserialize;
 
-use crate::Config;
-use crate::old_config::OldConfig;
+use crate::{old_config::OldConfig, Config};
 
 pub trait NodeVersion {
     fn version(&self) -> Version;
 }
 
-pub fn is_version_range(value: &str) -> Result<VersionReq> {
-    VersionReq::parse_compat(value, Compat::Npm).context(value.to_string())
+pub fn is_version_range(value: &str) -> Result<Range> {
+    Range::parse(value).context(value.to_string())
 }
 
 // Filters out relevant major versions. Relevant meaning anything >=10
 pub fn filter_default<V: NodeVersion>(versions: Vec<V>) -> Vec<V> {
-    let relevant_versions = VersionReq::parse_compat(">=10", Compat::Npm).unwrap();
+    let relevant_versions = Range::parse(">=10").unwrap();
     let mut found_major_versions: HashSet<u64> = HashSet::new();
 
     let major_versions = versions
@@ -45,22 +44,21 @@ pub fn filter_default<V: NodeVersion>(versions: Vec<V>) -> Vec<V> {
     filter_version_req(major_versions, &relevant_versions)
 }
 
-pub fn filter_version_req<V: NodeVersion>(
-    versions: Vec<V>,
-    version_range: &VersionReq,
-) -> Vec<V> {
+pub fn filter_version_req<V: NodeVersion>(versions: Vec<V>, version_range: &Range) -> Vec<V> {
     versions
         .into_iter()
-        .filter(|version| version_range.matches(&version.version()))
+        .filter(|version| version_range.satisfies(&version.version()))
         .collect()
 }
 
-pub fn get_latest_of_each_major<'p, V: NodeVersion>(versions: &'p Vec<V>) -> HashMap<u64, &'p V> {
+pub fn get_latest_of_each_major<'p, V: NodeVersion>(versions: &'p [V]) -> HashMap<u64, &'p V> {
     let mut map: HashMap<u64, &'p V> = HashMap::new();
 
     for version in versions.iter() {
         let entry = map.get_mut(&version.version().major);
-        if entry.is_some() && version.version().lt(&entry.unwrap().version()) { continue; }
+        if entry.is_some() && version.version().lt(&entry.unwrap().version()) {
+            continue;
+        }
 
         map.insert(version.version().major, version);
     }
@@ -232,7 +230,11 @@ impl InstalledNodeVersion {
     pub fn list(config: &Config) -> Vec<InstalledNodeVersion> {
         let mut version_dirs: Vec<Version> = vec![];
 
-        for entry in config.get_versions_dir().read_dir().expect("Failed to read nvm dir") {
+        for entry in config
+            .get_versions_dir()
+            .read_dir()
+            .expect("Failed to read nvm dir")
+        {
             if entry.is_err() {
                 println!("Could not read {:?}", entry);
                 continue;
@@ -301,10 +303,10 @@ impl InstalledNodeVersion {
     }
 
     /// Returns the latest, installed version matching the version range
-    pub fn get_matching(config: &OldConfig, range: &VersionReq) -> Option<InstalledNodeVersion> {
+    pub fn get_matching(config: &OldConfig, range: &Range) -> Option<InstalledNodeVersion> {
         Self::get_all(config)
             .iter()
-            .find(|inv| range.matches(inv.version().borrow()))
+            .find(|inv| range.satisfies(inv.version().borrow()))
             .map(|inv| inv.to_owned())
     }
 }

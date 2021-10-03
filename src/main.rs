@@ -1,16 +1,19 @@
-use std::fs::create_dir_all;
-use std::path::{Path, PathBuf};
+use std::{
+    fs::create_dir_all,
+    path::{Path, PathBuf},
+};
 
 use anyhow::Result;
 use clap::{AppSettings, Clap, ValueHint};
 
-use subcommand::list::ListCommand;
-
-use crate::actions::Action;
+use crate::{
+    actions::Action,
+    subcommand::{list::ListCommand, parse_version::ParseVersionCommand},
+};
 
 mod actions;
-mod old_config;
 mod node_version;
+mod old_config;
 mod subcommand;
 mod utils;
 
@@ -21,6 +24,7 @@ mod utils;
 #[derive(Clap, Debug)]
 enum Subcommands {
     List(ListCommand),
+    ParseVersion(ParseVersionCommand),
 }
 
 #[derive(Clap, Debug)]
@@ -49,11 +53,15 @@ pub struct Config {
 
 impl Config {
     pub fn get_dir(&self) -> PathBuf {
-        self.dir.as_ref().map_or_else(Config::default_dir, |r| r.clone())
+        self.dir
+            .as_ref()
+            .map_or_else(Config::default_dir, |r| r.clone())
     }
 
     pub fn get_shims_dir(&self) -> PathBuf {
-        self.shims_dir.as_ref().map_or_else(|| self.get_dir().join("shims"), |r| r.clone())
+        self.shims_dir
+            .as_ref()
+            .map_or_else(|| self.get_dir().join("shims"), |r| r.clone())
     }
 
     /// Path to directory containing node versions
@@ -86,9 +94,7 @@ fn ensure_dir_exists(path: &Path) {
 }
 
 fn main() -> Result<()> {
-    let config: Config = Config {
-        ..Config::parse()
-    };
+    let config: Config = Config::parse();
 
     ensure_dir_exists(&config.get_dir());
     ensure_dir_exists(&config.get_shims_dir());
@@ -96,5 +102,7 @@ fn main() -> Result<()> {
 
     match config.command {
         Subcommands::List(ref options) => ListCommand::run(&config, options),
+        Subcommands::ParseVersion(ref options) => ParseVersionCommand::run(&config, options),
+        _ => Result::Ok(())
     }
 }

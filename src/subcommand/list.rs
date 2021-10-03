@@ -1,12 +1,15 @@
-use std::collections::HashMap;
-use std::ops::Deref;
+use std::{collections::HashMap, ops::Deref};
 
 use anyhow::Result;
 use clap::{AppSettings, Clap};
-use semver::VersionReq;
+use node_semver::Range;
 
-use crate::{Config, node_version, node_version::{InstalledNodeVersion, NodeVersion, OnlineNodeVersion}};
-use crate::actions::Action;
+use crate::{
+    actions::Action,
+    node_version,
+    node_version::{InstalledNodeVersion, NodeVersion, OnlineNodeVersion},
+    Config,
+};
 
 enum VersionStatus {
     Outdated(OnlineNodeVersion),
@@ -47,7 +50,7 @@ pub struct ListCommand {
     ///
     /// `12`, `^10.9`, `>=8.10`, `>=8, <9`
     #[clap(short, long, validator = node_version::is_version_range)]
-    pub filter: Option<VersionReq>,
+    pub filter: Option<Range>,
 }
 
 impl Action<ListCommand> for ListCommand {
@@ -56,10 +59,7 @@ impl Action<ListCommand> for ListCommand {
 
         // Use filter option if it was passed
         if let Some(filter) = &options.filter {
-            installed_versions = node_version::filter_version_req(
-                installed_versions,
-                filter,
-            );
+            installed_versions = node_version::filter_version_req(installed_versions, filter);
         }
 
         let mut latest_per_major: HashMap<u64, &OnlineNodeVersion> = HashMap::new();
@@ -68,15 +68,25 @@ impl Action<ListCommand> for ListCommand {
             latest_per_major = node_version::get_latest_of_each_major(&online_versions);
         }
 
-        let lines: Vec<String> = installed_versions.iter().map(|version| {
-            let version_status = match latest_per_major.get(&version.version().major) {
-                Some(latest) if latest.version().gt(&version.version()) => VersionStatus::Outdated(latest.deref().clone()),
-                Some(_) => VersionStatus::Latest,
-                None => VersionStatus::Unknown,
-            };
+        let lines: Vec<String> = installed_versions
+            .iter()
+            .map(|version| {
+                let version_status = match latest_per_major.get(&version.version().major) {
+                    Some(latest) if latest.version().gt(&version.version()) => {
+                        VersionStatus::Outdated(latest.deref().clone())
+                    },
+                    Some(_) => VersionStatus::Latest,
+                    None => VersionStatus::Unknown,
+                };
 
-            format!("{} {} {}", emoji_from(&version_status), version.to_string(), latest_version_string_from(&version_status))
-        }).collect();
+                format!(
+                    "{} {} {}",
+                    emoji_from(&version_status),
+                    version.to_string(),
+                    latest_version_string_from(&version_status)
+                )
+            })
+            .collect();
 
         println!("{}", lines.join("\n"));
         Result::Ok(())
@@ -89,8 +99,7 @@ mod tests {
     mod filter_default {
         use std::{borrow::Borrow, fs};
 
-        use super::super::node_version;
-        use super::super::OnlineNodeVersion;
+        use super::super::{node_version, OnlineNodeVersion};
 
         #[test]
         fn filters_correctly() {

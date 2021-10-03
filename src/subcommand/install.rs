@@ -1,25 +1,28 @@
-use std::{borrow::Borrow, fs::create_dir_all, io::Cursor};
-#[cfg(windows)]
-use std::fs::File;
+#[cfg(unix)]
+use flate2::read::GzDecoder;
 #[cfg(unix)]
 use std::fs::remove_dir_all;
-use std::io::copy;
+#[cfg(windows)]
+use std::fs::File;
+use std::{
+    borrow::Borrow,
+    fs::create_dir_all,
+    io::{copy, Cursor},
+};
 
 use anyhow::{Context, Result};
 use clap::ArgMatches;
-#[cfg(unix)]
-use flate2::read::GzDecoder;
+use node_semver::Range;
 use reqwest::blocking::Response;
-use semver::{Compat, VersionReq};
 #[cfg(unix)]
 use tar::{Archive, Unpacked};
 #[cfg(target_os = "windows")]
 use zip::ZipArchive;
 
 use crate::{
-    old_config::OldConfig,
     node_version,
     node_version::{InstalledNodeVersion, NodeVersion, OnlineNodeVersion},
+    old_config::OldConfig,
     subcommand::Subcommand,
 };
 
@@ -50,9 +53,8 @@ impl<'c> Install<'c> {
             }
 
             if item.is_dir() && !new_path.exists() {
-                create_dir_all(new_path.to_owned()).unwrap_or_else(|_| {
-                    panic!("Could not create new folder: {:?}", new_path)
-                });
+                create_dir_all(new_path.to_owned())
+                    .unwrap_or_else(|_| panic!("Could not create new folder: {:?}", new_path));
             }
 
             if item.is_file() {
@@ -156,7 +158,7 @@ impl<'c> Subcommand<'c> for Install<'c> {
         let command = Self { config };
 
         let input = matches.value_of("version").unwrap();
-        let wanted_range = VersionReq::parse_compat(input, Compat::Npm).unwrap();
+        let wanted_range = Range::parse(input).unwrap();
         let force_install = matches.is_present("force");
 
         let online_versions = OnlineNodeVersion::fetch_all()?;

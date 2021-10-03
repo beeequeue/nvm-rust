@@ -10,11 +10,11 @@ use std::os::windows::fs::symlink_dir;
 
 use anyhow::Result;
 use clap::ArgMatches;
-use semver::{Compat, Version, VersionReq};
+use node_semver::{Range, Version};
 
 use crate::{
-    old_config::OldConfig,
     node_version::{InstalledNodeVersion, NodeVersion},
+    old_config::OldConfig,
     subcommand::Subcommand,
 };
 
@@ -71,11 +71,11 @@ impl<'c> Subcommand<'c> for Switch<'c> {
     fn run(config: &'c OldConfig, matches: &ArgMatches) -> Result<()> {
         let command = Self { config };
 
-        let range: Option<VersionReq>;
+        let range: Option<Range>;
 
         if let Some(arg) = matches.value_of("version") {
             // The argument is checked by clap in main.rs
-            range = VersionReq::parse_compat(arg, Compat::Npm).ok();
+            range = Range::parse(arg).ok();
         } else {
             // TODO: Check for .nvmrc, parse it, etc...
             anyhow::bail!(".nvmrc files are not supported yet.");
