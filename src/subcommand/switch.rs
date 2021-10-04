@@ -27,7 +27,7 @@ impl<'c> Switch<'c> {
     fn set_shims(self, version: &Version) -> Result<()> {
         let shims_dir = self.config.shims_dir.to_owned();
 
-        if !InstalledNodeVersion::is_installed(self.config, version) {
+        if !InstalledNodeVersion::is_installed_old(self.config, version) {
             anyhow::bail!("{} is not installed", version);
         }
 
@@ -86,7 +86,7 @@ impl<'c> Subcommand<'c> for Switch<'c> {
         }
 
         if let Some(inv) = InstalledNodeVersion::get_matching(config, range.unwrap().borrow()) {
-            if !InstalledNodeVersion::is_installed(config, &inv.version()) {
+            if !InstalledNodeVersion::is_installed_old(config, &inv.version()) {
                 anyhow::bail!("{} is not installed", inv.version());
             }
 

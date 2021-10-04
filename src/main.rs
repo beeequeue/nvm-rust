@@ -8,7 +8,7 @@ use clap::{AppSettings, Clap, ValueHint};
 
 use crate::{
     actions::Action,
-    subcommand::{list::ListCommand, parse_version::ParseVersionCommand},
+    subcommand::{install::InstallCommand, list::ListCommand, parse_version::ParseVersionCommand},
 };
 
 mod actions;
@@ -16,6 +16,7 @@ mod node_version;
 mod old_config;
 mod subcommand;
 mod utils;
+mod archives;
 
 // fn validate_number(value: &str) -> Result<i32> {
 //     value.parse().context(format!("{} is not a number!", value))
@@ -24,6 +25,7 @@ mod utils;
 #[derive(Clap, Debug)]
 enum Subcommands {
     List(ListCommand),
+    Install(InstallCommand),
     ParseVersion(ParseVersionCommand),
 }
 
@@ -103,6 +105,7 @@ fn main() -> Result<()> {
     match config.command {
         Subcommands::List(ref options) => ListCommand::run(&config, options),
         Subcommands::ParseVersion(ref options) => ParseVersionCommand::run(&config, options),
+        Subcommands::Install(ref options) => InstallCommand::run(&config, options),
         #[allow(unreachable_patterns)]
         _ => Result::Ok(()),
     }
