@@ -11,7 +11,6 @@ use crate::{
     Config,
 };
 
-/// List installed and released node versions
 #[derive(Clap, Debug)]
 #[clap(
 about = "Install a new node version",
@@ -20,7 +19,7 @@ alias = "add",
 setting = AppSettings::ColoredHelp
 )]
 pub struct InstallCommand {
-    /// Filter by semantic versions.
+    /// A semver range. The latest version matching this range will be installed
     #[clap(validator = node_version::is_version_range)]
     pub version: Range,
     /// Switch to the new version after installing it

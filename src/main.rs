@@ -8,7 +8,10 @@ use clap::{AppSettings, Clap, ValueHint};
 
 use crate::{
     actions::Action,
-    subcommand::{install::InstallCommand, list::ListCommand, parse_version::ParseVersionCommand},
+    subcommand::{
+        install::InstallCommand, list::ListCommand, parse_version::ParseVersionCommand,
+        switch::SwitchCommand,
+    },
 };
 
 mod actions;
@@ -26,6 +29,7 @@ mod utils;
 enum Subcommands {
     List(ListCommand),
     Install(InstallCommand),
+    Use(SwitchCommand),
     ParseVersion(ParseVersionCommand),
 }
 
@@ -99,13 +103,13 @@ fn main() -> Result<()> {
     let config: Config = Config::parse();
 
     ensure_dir_exists(&config.get_dir());
-    ensure_dir_exists(&config.get_shims_dir());
     ensure_dir_exists(&config.get_versions_dir());
 
     match config.command {
         Subcommands::List(ref options) => ListCommand::run(&config, options),
-        Subcommands::ParseVersion(ref options) => ParseVersionCommand::run(&config, options),
         Subcommands::Install(ref options) => InstallCommand::run(&config, options),
+        Subcommands::Use(ref options) => SwitchCommand::run(&config, options),
+        Subcommands::ParseVersion(ref options) => ParseVersionCommand::run(&config, options),
         #[allow(unreachable_patterns)]
         _ => Result::Ok(()),
     }

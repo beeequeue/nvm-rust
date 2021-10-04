@@ -32,7 +32,6 @@ fn latest_version_string_from(status: &VersionStatus) -> String {
     }
 }
 
-/// List installed and released node versions
 #[derive(Clap, Debug)]
 #[clap(
 about = "List installed and released node versions",

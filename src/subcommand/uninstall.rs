@@ -17,7 +17,7 @@ impl<'c> Subcommand<'c> for Uninstall {
         let input = matches.value_of("version").unwrap();
         let wanted_range = Range::parse(input).unwrap();
 
-        if let Some(version) = InstalledNodeVersion::get_matching(config, &wanted_range) {
+        if let Some(version) = InstalledNodeVersion::get_matching_old(config, &wanted_range) {
             if version.is_selected(config) {
                 println!("{} is currently selected.", version.version());
 

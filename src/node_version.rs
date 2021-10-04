@@ -308,7 +308,16 @@ impl InstalledNodeVersion {
     }
 
     /// Returns the latest, installed version matching the version range
-    pub fn get_matching(config: &OldConfig, range: &Range) -> Option<InstalledNodeVersion> {
+    pub fn find_matching(config: &Config, range: &Range) -> Option<InstalledNodeVersion> {
+        Self::list(config)
+            .iter()
+            .find(|inv| range.satisfies(inv.version().borrow()))
+            .map(|inv| inv.to_owned())
+    }
+
+    /// Returns the latest, installed version matching the version range
+    #[deprecated]
+    pub fn get_matching_old(config: &OldConfig, range: &Range) -> Option<InstalledNodeVersion> {
         Self::get_all(config)
             .iter()
             .find(|inv| range.satisfies(inv.version().borrow()))
