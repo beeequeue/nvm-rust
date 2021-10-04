@@ -2,11 +2,11 @@
 use std::fs::remove_dir_all;
 #[cfg(windows)]
 use std::fs::File;
-use std::{
-    fs::create_dir_all,
-    io::{copy, Cursor},
-    path::Path,
-};
+#[cfg(windows)]
+use std::io::copy;
+#[cfg(unix)]
+use std::path::PathBuf;
+use std::{fs::create_dir_all, io::Cursor, path::Path};
 
 use anyhow::Result;
 #[cfg(unix)]

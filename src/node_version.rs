@@ -169,9 +169,7 @@ impl InstalledNodeVersion {
     }
 
     pub fn is_installed(config: &Config, version: &Version) -> bool {
-        Self::list(config)
-            .iter()
-            .any(|v| v.version().eq(version))
+        Self::list(config).iter().any(|v| v.version().eq(version))
     }
 
     #[deprecated]

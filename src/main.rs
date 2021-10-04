@@ -12,11 +12,11 @@ use crate::{
 };
 
 mod actions;
+mod archives;
 mod node_version;
 mod old_config;
 mod subcommand;
 mod utils;
-mod archives;
 
 // fn validate_number(value: &str) -> Result<i32> {
 //     value.parse().context(format!("{} is not a number!", value))
@@ -77,7 +77,7 @@ impl Config {
     }
 
     #[cfg(unix)]
-    fn default_dir() -> String {
+    fn default_dir() -> PathBuf {
         dirs::home_dir().unwrap().join("nvm-rust")
     }
 }
