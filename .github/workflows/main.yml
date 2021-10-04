@@ -7,10 +7,7 @@ env:
   TERM: xterm-256color
 
 jobs:
-  build_and_test:
-    name: Build and Test
-    continue-on-error: true
-
+  build:
     strategy:
       matrix:
         os: [ macos-latest, ubuntu-latest, windows-latest ]
@@ -19,37 +16,58 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2.3.4
+
       - uses: actions-rs/toolchain@v1.0.7
         with:
+          profile: minimal
           toolchain: nightly
           default: true
-      - uses: actions/cache@v2.1.5
+
+      - name: Rust Cache
+        uses: Swatinem/rust-cache@v1.3.0
         with:
-          path: |
-            ~/.cargo/bin/
-            ~/.cargo/registry/index/
-            ~/.cargo/registry/cache/
-            ~/.cargo/git/db/
-            target/
-          key: ${{ matrix.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: |
-            ${{ matrix.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-            ${{ matrix.os }}-cargo-
+          key: build
+
       - run: cargo build --release --all-features --locked
+
+  test:
+    strategy:
+      matrix:
+        os: [ macos-latest, ubuntu-latest, windows-latest ]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v2.3.4
+
+      - uses: actions-rs/toolchain@v1.0.7
+        with:
+          profile: minimal
+          toolchain: nightly
+          default: true
+
+      - name: Rust Cache
+        uses: Swatinem/rust-cache@v1.3.0
+        with:
+          key: test
+
       - run: cargo test --release --all-features
 
   clippy:
-    name: Clippy
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v2.3.4
+
       - uses: actions-rs/toolchain@v1.0.7
         with:
           profile: minimal
           toolchain: nightly
           override: true
           components: rustfmt, clippy
+
       - run: cargo fmt --all -- --check
+
       - uses: actions-rs/clippy-check@v1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
