@@ -44,10 +44,10 @@ pub struct Config {
     shims_dir: Option<PathBuf>,
     /// Level of verbosity, can be used multiple times
     #[clap(short, long, parse(from_occurrences))]
-    pub verbose: i32,
+    verbose: i32,
     /// Accept any prompts needed for command to complete
     #[clap(short, long)]
-    pub force: bool,
+    force: bool,
 
     #[clap(subcommand)]
     command: Subcommands,

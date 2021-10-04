@@ -23,6 +23,9 @@ pub struct InstallCommand {
     /// Filter by semantic versions.
     #[clap(validator = node_version::is_version_range)]
     pub version: Range,
+    /// Switch to the new version after installing it
+    #[clap(long, short)]
+    pub switch: Option<bool>,
 }
 
 impl Action<InstallCommand> for InstallCommand {
@@ -30,22 +33,36 @@ impl Action<InstallCommand> for InstallCommand {
         let online_versions = OnlineNodeVersion::fetch_all()?;
         let filtered_versions = node_version::filter_version_req(online_versions, &options.version);
 
-        if let Some(latest_version) = filtered_versions.first() {
-            if InstalledNodeVersion::is_installed(config, &latest_version.version()) {
-                println!(
-                    "{} is already installed - skipping...",
-                    latest_version.version()
-                );
+        let version_to_install = filtered_versions.first().context(format!(
+            "Did not find a version matching `{}`!",
+            options.version
+        ))?;
 
-                return Result::Ok(());
-            }
+        if InstalledNodeVersion::is_installed(config, &version_to_install.version()) {
+            println!(
+                "{} is already installed - skipping...",
+                version_to_install.version()
+            );
 
-            download_and_extract_to(
-                latest_version.borrow(),
-                &config.get_versions_dir().join(latest_version.to_string()),
-            )?;
-        } else {
-            anyhow::bail!("Did not find a version matching `{}`!", options.version);
+            return Result::Ok(());
+        }
+
+        download_and_extract_to(
+            version_to_install.borrow(),
+            &config
+                .get_versions_dir()
+                .join(version_to_install.to_string()),
+        )?;
+
+        if config.force
+            || (options.switch.is_none()
+                && dialoguer::Confirm::new()
+                    .with_prompt(format!("Switch to {}?", version_to_install.to_string()))
+                    .default(true)
+                    .interact()?)
+            || options.switch.unwrap()
+        {
+            // TODO: Switch version
         }
 
         Result::Ok(())
