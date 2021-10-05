@@ -8,10 +8,11 @@ use crate::{
     actions::Action,
     archives, node_version,
     node_version::{InstalledNodeVersion, NodeVersion, OnlineNodeVersion},
+    subcommand::switch::SwitchCommand,
     Config,
 };
 
-#[derive(Clap, Debug)]
+#[derive(Clap, Clone, Debug)]
 #[clap(
 about = "Install a new node version",
 alias = "i",
@@ -61,7 +62,12 @@ impl Action<InstallCommand> for InstallCommand {
                     .interact()?)
             || options.switch.unwrap()
         {
-            // TODO: Switch version
+            SwitchCommand::run(
+                &config.with_force(),
+                &SwitchCommand {
+                    version: Range::parse(version_to_install.to_string())?,
+                },
+            )?;
         }
 
         Result::Ok(())

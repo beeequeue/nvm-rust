@@ -32,7 +32,7 @@ fn latest_version_string_from(status: &VersionStatus) -> String {
     }
 }
 
-#[derive(Clap, Debug)]
+#[derive(Clap, Clone, Debug)]
 #[clap(
 about = "List installed and released node versions",
 alias = "ls",

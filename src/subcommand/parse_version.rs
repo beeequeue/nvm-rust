@@ -4,7 +4,7 @@ use node_semver::Range;
 
 use crate::{actions::Action, node_version::is_version_range, Config};
 
-#[derive(Clap, Debug)]
+#[derive(Clap, Clone, Debug)]
 #[clap(
 about = "Echo what a version string will be parsed to",
 alias = "pv",

@@ -19,7 +19,7 @@ use crate::{
     Config,
 };
 
-#[derive(Clap, Debug)]
+#[derive(Clap, Clone, Debug)]
 #[clap(
 about = "Switch to an installed node version",
 alias = "switch",

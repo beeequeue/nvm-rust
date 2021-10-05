@@ -25,7 +25,7 @@ mod utils;
 //     value.parse().context(format!("{} is not a number!", value))
 // }
 
-#[derive(Clap, Debug)]
+#[derive(Clap, Clone, Debug)]
 enum Subcommands {
     List(ListCommand),
     Install(InstallCommand),
@@ -73,6 +73,16 @@ impl Config {
     /// Path to directory containing node versions
     fn get_versions_dir(&self) -> PathBuf {
         self.get_dir().join("versions")
+    }
+
+    fn with_force(&self) -> Self {
+        Self {
+            force: true,
+            verbose: self.verbose,
+            dir: Some(self.get_dir()),
+            shims_dir: Some(self.get_shims_dir()),
+            command: self.command.clone(),
+        }
     }
 
     #[cfg(windows)]
