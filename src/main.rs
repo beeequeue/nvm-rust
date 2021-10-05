@@ -6,18 +6,13 @@ use std::{
 use anyhow::Result;
 use clap::{AppSettings, Clap, ValueHint};
 
-use crate::{
-    actions::Action,
-    subcommand::{
-        install::InstallCommand, list::ListCommand, parse_version::ParseVersionCommand,
-        switch::SwitchCommand, uninstall::UninstallCommand,
-    },
+use crate::subcommand::{
+    install::InstallCommand, list::ListCommand, parse_version::ParseVersionCommand,
+    switch::SwitchCommand, uninstall::UninstallCommand,
 };
 
-mod actions;
 mod archives;
 mod node_version;
-mod old_config;
 mod subcommand;
 mod utils;
 

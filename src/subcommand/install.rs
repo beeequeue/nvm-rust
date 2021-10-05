@@ -5,10 +5,9 @@ use clap::{AppSettings, Clap};
 use node_semver::Range;
 
 use crate::{
-    actions::Action,
     archives, node_version,
     node_version::{InstalledNodeVersion, NodeVersion, OnlineNodeVersion},
-    subcommand::switch::SwitchCommand,
+    subcommand::{switch::SwitchCommand, Action},
     Config,
 };
 

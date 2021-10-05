@@ -2,7 +2,7 @@ use anyhow::Result;
 use clap::{AppSettings, Clap};
 use node_semver::Range;
 
-use crate::{actions::Action, node_version::is_version_range, Config};
+use crate::{node_version::is_version_range, subcommand::Action, Config};
 
 #[derive(Clap, Clone, Debug)]
 #[clap(

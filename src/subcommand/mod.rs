@@ -1,7 +1,6 @@
 use anyhow::Result;
-use clap::ArgMatches;
 
-use crate::old_config::OldConfig;
+use crate::Config;
 
 pub mod install;
 pub mod list;
@@ -9,6 +8,6 @@ pub mod parse_version;
 pub mod switch;
 pub mod uninstall;
 
-pub trait Subcommand<'c> {
-    fn run(config: &'c OldConfig, matches: &ArgMatches) -> Result<()>;
+pub trait Action<T: clap::Clap> {
+    fn run(config: &Config, options: &T) -> Result<()>;
 }
