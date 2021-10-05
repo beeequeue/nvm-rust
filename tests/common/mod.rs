@@ -8,7 +8,7 @@ use std::{
         canonicalize, copy, create_dir_all, read_dir, read_link, remove_dir_all, remove_file,
         symlink_metadata,
     },
-    path::PathBuf,
+    path::{Path, PathBuf},
 };
 
 use anyhow::{Context, Result};
@@ -33,7 +33,7 @@ pub fn required_files<'a>() -> [&'a str; 5] {
     ["node.exe", "npm", "npm.cmd", "npx", "npx.cmd"]
 }
 
-fn ensure_dir_exists(path: &PathBuf) -> Result<()> {
+fn ensure_dir_exists(path: &Path) -> Result<()> {
     if !path.exists() {
         create_dir_all(path).context(format!("Could not create {:?}", path))?
     }
@@ -85,6 +85,7 @@ pub fn install_mock_version(version_str: &str) -> Result<()> {
     Result::Ok(())
 }
 
+#[allow(dead_code)]
 #[cfg(windows)]
 pub fn create_shim(version_str: &str) -> Result<()> {
     symlink_dir(

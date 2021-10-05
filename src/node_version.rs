@@ -1,6 +1,6 @@
 use std::{
     borrow::Borrow,
-    collections::{HashMap, HashSet},
+    collections::HashMap,
     fs::{read_link, remove_dir_all},
     path::PathBuf,
 };
@@ -18,30 +18,6 @@ pub trait NodeVersion {
 
 pub fn is_version_range(value: &str) -> Result<Range> {
     Range::parse(value).context(value.to_string())
-}
-
-// Filters out relevant major versions. Relevant meaning anything >=10
-pub fn filter_default<V: NodeVersion>(versions: Vec<V>) -> Vec<V> {
-    let relevant_versions = Range::parse(">=10").unwrap();
-    let mut found_major_versions: HashSet<u64> = HashSet::new();
-
-    let major_versions = versions
-        .into_iter()
-        .filter(|version| {
-            let version = version.version();
-            let major = version.major;
-
-            if found_major_versions.contains(major.borrow()) {
-                return false;
-            }
-
-            found_major_versions.insert(major);
-
-            true
-        })
-        .collect();
-
-    filter_version_req(major_versions, &relevant_versions)
 }
 
 pub fn filter_version_req<V: NodeVersion>(versions: Vec<V>, version_range: &Range) -> Vec<V> {
