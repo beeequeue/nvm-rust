@@ -10,7 +10,7 @@ use crate::{
     actions::Action,
     subcommand::{
         install::InstallCommand, list::ListCommand, parse_version::ParseVersionCommand,
-        switch::SwitchCommand,
+        switch::SwitchCommand, uninstall::UninstallCommand,
     },
 };
 
@@ -29,6 +29,7 @@ mod utils;
 enum Subcommands {
     List(ListCommand),
     Install(InstallCommand),
+    Uninstall(UninstallCommand),
     Use(SwitchCommand),
     ParseVersion(ParseVersionCommand),
 }
@@ -118,6 +119,7 @@ fn main() -> Result<()> {
     match config.command {
         Subcommands::List(ref options) => ListCommand::run(&config, options),
         Subcommands::Install(ref options) => InstallCommand::run(&config, options),
+        Subcommands::Uninstall(ref options) => UninstallCommand::run(&config, options),
         Subcommands::Use(ref options) => SwitchCommand::run(&config, options),
         Subcommands::ParseVersion(ref options) => ParseVersionCommand::run(&config, options),
         #[allow(unreachable_patterns)]

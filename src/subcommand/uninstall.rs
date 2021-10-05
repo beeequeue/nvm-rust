@@ -1,45 +1,49 @@
 use anyhow::Result;
-use clap::ArgMatches;
+use clap::{AppSettings, Clap};
 use node_semver::Range;
 
 use crate::{
+    actions::Action,
+    node_version,
     node_version::{InstalledNodeVersion, NodeVersion},
-    old_config::OldConfig,
-    subcommand::Subcommand,
-    utils,
+    Config,
 };
 
-pub struct Uninstall {}
+#[derive(Clap, Clone, Debug)]
+#[clap(
+about = "Uninstall a version",
+alias = "r",
+alias = "remove",
+setting = AppSettings::ColoredHelp
+)]
+pub struct UninstallCommand {
+    /// A semver range. The latest version matching this range will be installed
+    #[clap(validator = node_version::is_version_range)]
+    pub version: Range,
+}
 
-impl<'c> Subcommand<'c> for Uninstall {
-    fn run(config: &'c OldConfig, matches: &ArgMatches) -> Result<()> {
-        let force = matches.is_present("force");
-        let input = matches.value_of("version").unwrap();
-        let wanted_range = Range::parse(input).unwrap();
+impl Action<UninstallCommand> for UninstallCommand {
+    fn run(config: &Config, options: &UninstallCommand) -> Result<()> {
+        let version = InstalledNodeVersion::find_matching(config, &options.version);
+        if version.is_none() {
+            anyhow::bail!("{} is not installed.", &options.version.to_string())
+        }
 
-        if let Some(version) = InstalledNodeVersion::get_matching_old(config, &wanted_range) {
-            if version.is_selected(config) {
-                println!("{} is currently selected.", version.version());
+        let version = version.unwrap();
+        if version.is_selected(config) {
+            println!("{} is currently selected.", version.version());
 
-                if !force
-                    && !utils::confirm_choice(
-                        String::from("Are you sure you want to uninstall it?"),
-                        false,
-                    )
-                {
-                    return Result::Ok(());
-                }
-
-                InstalledNodeVersion::deselect(config)?;
+            if !config.force
+                && !(dialoguer::Confirm::new()
+                    .with_prompt("Are you sure you want to uninstall it?")
+                    .interact()?)
+            {
+                return Result::Ok(());
             }
 
-            version.uninstall(config)
-        } else {
-            anyhow::bail!(
-                "Did not find an installed version matching `{}`, (parsed as `{}`)",
-                input,
-                wanted_range
-            )
+            InstalledNodeVersion::deselect(config)?;
         }
+
+        version.uninstall(config)
     }
 }

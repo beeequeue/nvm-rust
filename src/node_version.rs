@@ -10,7 +10,7 @@ use node_semver::{Range, Version};
 use reqwest::Url;
 use serde::Deserialize;
 
-use crate::{old_config::OldConfig, Config};
+use crate::Config;
 
 pub trait NodeVersion {
     fn version(&self) -> Version;
@@ -164,42 +164,41 @@ pub struct InstalledNodeVersion {
 impl InstalledNodeVersion {
     // Properties
 
-    pub fn get_dir_path(&self, config: &OldConfig) -> PathBuf {
-        config.dir.join(self.version().to_string())
+    pub fn get_dir_path(&self, config: &Config) -> PathBuf {
+        config.get_versions_dir().join(self.version().to_string())
     }
 
     pub fn is_installed(config: &Config, version: &Version) -> bool {
         Self::list(config).iter().any(|v| v.version().eq(version))
     }
 
-    #[deprecated]
-    pub fn is_installed_old(config: &OldConfig, version: &Version) -> bool {
-        Self::get_all(config)
-            .iter()
-            .any(|v| v.version().eq(version))
-    }
+    pub fn is_selected(&self, config: &Config) -> bool {
+        let path = config.get_shims_dir();
+        let real_path = read_link(path);
 
-    pub fn is_selected(&self, config: &OldConfig) -> bool {
-        let path = config.shims_dir.to_owned();
-
-        if !path.exists() {
+        if real_path.is_err() {
             return false;
         }
 
-        if let Result::Ok(path) = read_link(path) {
-            return path.to_str().unwrap().contains(&self.version().to_string());
-        }
+        let real_path = real_path.unwrap();
 
-        false
+        real_path
+            .to_string_lossy()
+            .contains(&self.version().to_string())
     }
 
-    fn get_ext() -> String {
-        String::from(if cfg!(windows) { ".cmd" } else { "" })
+    #[allow(dead_code)]
+    fn exec_ext() -> &'static str {
+        if cfg!(windows) {
+            ".cmd"
+        } else {
+            ""
+        }
     }
 
     // Functions
 
-    pub fn uninstall(self, config: &OldConfig) -> Result<()> {
+    pub fn uninstall(self, config: &Config) -> Result<()> {
         remove_dir_all(self.get_dir_path(config))?;
 
         println!("Uninstalled {}!", self.version());
@@ -207,13 +206,14 @@ impl InstalledNodeVersion {
     }
 
     /// Checks that all the required files are present in the installation dir
-    pub fn validate(&self, config: &OldConfig) -> Result<()> {
-        let base_path = config.dir.to_owned();
-        let version_dir: PathBuf = [base_path.to_str().unwrap(), ""].iter().collect();
+    #[allow(dead_code)]
+    pub fn validate(&self, config: &Config) -> Result<()> {
+        let version_dir =
+            read_link(&config.get_shims_dir()).expect("Could not read installation dir");
 
         let mut required_files = vec![version_dir; 2];
-        required_files[0].set_file_name(format!("node{}", Self::get_ext()));
-        required_files[1].set_file_name(format!("npm{}", Self::get_ext()));
+        required_files[0].set_file_name(format!("node{}", Self::exec_ext()));
+        required_files[1].set_file_name(format!("npm{}", Self::exec_ext()));
 
         if let Some(missing_file) = required_files.iter().find(|file| !file.exists()) {
             anyhow::bail!(
@@ -228,8 +228,8 @@ impl InstalledNodeVersion {
 
     // Static functions
 
-    pub fn deselect(config: &OldConfig) -> Result<()> {
-        remove_dir_all(config.shims_dir.to_owned()).map_err(anyhow::Error::from)
+    pub fn deselect(config: &Config) -> Result<()> {
+        remove_dir_all(config.get_shims_dir()).map_err(anyhow::Error::from)
     }
 
     pub fn list(config: &Config) -> Vec<InstalledNodeVersion> {
@@ -269,56 +269,9 @@ impl InstalledNodeVersion {
             .collect()
     }
 
-    /// Returns all the installed, valid node versions in `Config.dir`
-    #[deprecated]
-    pub fn get_all(config: &OldConfig) -> Vec<InstalledNodeVersion> {
-        let base_path = config.dir.to_owned();
-        let mut version_dirs: Vec<Version> = vec![];
-
-        for entry in base_path.read_dir().unwrap() {
-            if entry.is_err() {
-                println!("Could not read {:?}", entry);
-                continue;
-            }
-
-            let entry = entry.unwrap();
-            let result = parse_version_str(String::from(entry.file_name().to_string_lossy()));
-
-            if let Result::Ok(version) = result {
-                version_dirs.push(version);
-            }
-        }
-
-        version_dirs.sort();
-        version_dirs.reverse();
-
-        version_dirs
-            .iter()
-            .map(|version| {
-                let version_str = version.to_string();
-
-                InstalledNodeVersion {
-                    version_str: version_str.clone(),
-                    path: [base_path.to_str().unwrap(), version_str.borrow()]
-                        .iter()
-                        .collect(),
-                }
-            })
-            .collect()
-    }
-
     /// Returns the latest, installed version matching the version range
     pub fn find_matching(config: &Config, range: &Range) -> Option<InstalledNodeVersion> {
         Self::list(config)
-            .iter()
-            .find(|inv| range.satisfies(inv.version().borrow()))
-            .map(|inv| inv.to_owned())
-    }
-
-    /// Returns the latest, installed version matching the version range
-    #[deprecated]
-    pub fn get_matching_old(config: &OldConfig, range: &Range) -> Option<InstalledNodeVersion> {
-        Self::get_all(config)
             .iter()
             .find(|inv| range.satisfies(inv.version().borrow()))
             .map(|inv| inv.to_owned())

@@ -23,7 +23,7 @@ use crate::{
 #[clap(
 about = "Switch to an installed node version",
 alias = "switch",
-alias = "u",
+alias = "use",
 setting = AppSettings::ColoredHelp
 )]
 pub struct SwitchCommand {

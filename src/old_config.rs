@@ -1,5 +1,6 @@
 use std::path::PathBuf;
 
+#[deprecated]
 #[derive(Debug)]
 pub struct OldConfig {
     pub dir: PathBuf,
