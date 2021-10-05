@@ -8,7 +8,7 @@ use clap::{AppSettings, Clap, ValueHint};
 
 use crate::subcommand::{
     install::InstallCommand, list::ListCommand, parse_version::ParseVersionCommand,
-    switch::SwitchCommand, uninstall::UninstallCommand,
+    switch::SwitchCommand, uninstall::UninstallCommand, Action,
 };
 
 mod archives;
