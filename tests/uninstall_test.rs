@@ -2,56 +2,51 @@ mod common;
 
 mod uninstall {
     use anyhow::Result;
-    use assert_cmd::Command;
-    use serial_test::serial;
+    use std::path::Path;
 
     use crate::{
         common,
-        common::{assert_outputs_contain, assert_version_installed, assert_version_selected},
+        common::{assert_outputs_contain, assert_version_installed, get_selected_version},
     };
 
-    fn setup_versions(versions: Vec<&str>) -> Result<()> {
-        common::setup_integration_test()?;
+    fn setup_versions(temp_dir: &Path, versions: Vec<&str>) -> Result<()> {
+        for version_str in versions.to_owned().into_iter() {
+            common::install_mock_version(temp_dir, version_str)?;
+        }
 
-        versions.to_owned().into_iter().for_each(|version_str| {
-            common::install_mock_version(version_str).expect("Mock version");
-        });
-
-        common::create_shim(versions.get(0).unwrap()).expect("Select mock version");
-
-        Result::Ok(())
+        common::create_shim(temp_dir, versions.get(0).unwrap())
     }
 
     #[test]
-    #[serial]
     fn can_uninstall_version_matching_range() -> Result<()> {
-        let version_str = "12.18.3";
-        setup_versions(vec!["14.5.0", version_str])?;
+        let (temp_dir, mut cmd) = common::setup_integration_test()?;
 
-        let mut cmd = Command::cargo_bin("nvm-rust").unwrap();
+        let version_str = "12.18.3";
+        setup_versions(&temp_dir, vec!["14.5.0", version_str])?;
+
         let result = cmd.arg("uninstall").arg("12").assert();
 
         assert_outputs_contain(&result, "Uninstalled 12.18.3!", "")?;
-        assert_version_installed(version_str, false)?;
-        assert_version_selected(version_str, false)?;
+        assert_version_installed(&temp_dir, version_str, false)?;
+        assert_eq!(get_selected_version(&temp_dir), Some("14.5.0".to_string()));
 
-        Result::Ok(())
+        temp_dir.close().map_err(anyhow::Error::from)
     }
 
     #[test]
-    #[serial]
     fn can_uninstall_version_matching_exact_version() -> Result<()> {
-        let version_str = "12.18.3";
-        setup_versions(vec!["14.5.0", version_str])?;
+        let (temp_dir, mut cmd) = common::setup_integration_test()?;
 
-        let mut cmd = Command::cargo_bin("nvm-rust").unwrap();
+        let version_str = "12.18.3";
+        setup_versions(&temp_dir, vec!["14.5.0", version_str])?;
+
         let result = cmd.arg("uninstall").arg(version_str).assert();
 
         assert_outputs_contain(&result, "Uninstalled 12.18.3!", "")?;
-        assert_version_installed(version_str, false)?;
-        assert_version_selected(version_str, false)?;
+        assert_version_installed(&temp_dir, version_str, false)?;
+        assert_eq!(get_selected_version(&temp_dir), Some("14.5.0".to_string()));
 
-        Result::Ok(())
+        temp_dir.close().map_err(anyhow::Error::from)
     }
 
     // #[test]
@@ -81,44 +76,44 @@ mod uninstall {
     //     assert_version_installed(version_str, false)?;
     //     assert_version_selected(version_str, false)?;
     //
-    //     Result::Ok(())
+    //     temp_dir.close().map_err(anyhow::Error::from)
     // }
 
     #[test]
-    #[serial]
     fn force_skips_prompt() -> Result<()> {
-        let version_str = "12.18.3";
-        setup_versions(vec![version_str])?;
+        let (temp_dir, mut cmd) = common::setup_integration_test()?;
 
-        let mut cmd = Command::cargo_bin("nvm-rust").unwrap();
+        let version_str = "12.18.3";
+        setup_versions(&temp_dir, vec![version_str])?;
 
         let result = cmd
             .arg("uninstall")
             .arg(version_str)
             .arg("--force")
             .assert();
+
         assert_outputs_contain(
             &result,
             "12.18.3 is currently selected.\nUninstalled 12.18.3!",
             "",
         )?;
 
-        assert_version_installed(version_str, false)?;
-        assert_version_selected(version_str, false)?;
+        assert_version_installed(&temp_dir, version_str, false)?;
+        assert_eq!(get_selected_version(&temp_dir), None);
 
-        Result::Ok(())
+        temp_dir.close().map_err(anyhow::Error::from)
     }
 
     #[test]
-    #[serial]
     fn exits_gracefully_if_no_version_is_found() -> Result<()> {
-        setup_versions(vec!["14.5.0"])?;
+        let (temp_dir, mut cmd) = common::setup_integration_test()?;
 
-        let mut cmd = Command::cargo_bin("nvm-rust").unwrap();
+        setup_versions(&temp_dir, vec!["14.5.0"])?;
+
         let result = cmd.arg("uninstall").arg("12").assert();
 
         assert_outputs_contain(&result, "", "Error: >=12.0.0 <13.0.0-0 is not installed.")?;
 
-        Result::Ok(())
+        temp_dir.close().map_err(anyhow::Error::from)
     }
 }

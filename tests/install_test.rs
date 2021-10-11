@@ -2,7 +2,6 @@ mod common;
 
 mod install {
     use anyhow::Result;
-    use serial_test::serial;
 
     use crate::{
         common,
@@ -10,7 +9,6 @@ mod install {
     };
 
     #[test]
-    #[serial]
     fn can_install_version_matching_range() -> Result<()> {
         let (temp_dir, mut cmd) = common::setup_integration_test()?;
 
@@ -26,13 +24,12 @@ mod install {
             "Downloading from https://nodejs.org/dist/v12.7.0/node-v12.7.0-",
             "",
         )?;
-        assert_version_installed("12.7.0", true)?;
+        assert_version_installed(&temp_dir, "12.7.0", true)?;
 
         temp_dir.close().map_err(anyhow::Error::from)
     }
 
     #[test]
-    #[serial]
     fn can_install_version_matching_exact_version() -> Result<()> {
         let (temp_dir, mut cmd) = common::setup_integration_test()?;
 
@@ -44,13 +41,12 @@ mod install {
             "Downloading from https://nodejs.org/dist/v12.18.3/node-v12.18.3-",
             "",
         )?;
-        assert_version_installed(version_str, true)?;
+        assert_version_installed(&temp_dir, version_str, true)?;
 
         temp_dir.close().map_err(anyhow::Error::from)
     }
 
     #[test]
-    #[serial]
     fn stops_when_installing_installed_version() -> Result<()> {
         let (temp_dir, mut cmd) = common::setup_integration_test()?;
 
@@ -65,7 +61,6 @@ mod install {
     }
 
     #[test]
-    #[serial]
     fn force_forces_install_of_installed_version() -> Result<()> {
         let (temp_dir, mut cmd) = common::setup_integration_test()?;
 
@@ -78,13 +73,12 @@ mod install {
             "",
         )?;
         assert_outputs_contain(&result, "Extracting...", "")?;
-        assert_version_installed(version_str, true)?;
+        assert_version_installed(&temp_dir, version_str, true)?;
 
         temp_dir.close().map_err(anyhow::Error::from)
     }
 
     #[test]
-    #[serial]
     fn exits_gracefully_if_no_version_is_found() -> Result<()> {
         let (temp_dir, mut cmd) = common::setup_integration_test()?;
 

@@ -26,4 +26,5 @@ zip = "0.5.13"
 [dev-dependencies]
 assert_cmd = "1.0.2"
 assert_fs = "1.0.6"
+predicates = "2.0.3"
 serial_test = "0.5.1"

@@ -6,14 +6,8 @@ use std::{fs, path::Path};
 
 use anyhow::Result;
 use assert_cmd::{assert::Assert, Command};
-use assert_fs::TempDir;
-
-pub fn integration_dir() -> TempDir {
-    let dir = TempDir::new().expect("Could not create temp dir");
-
-    println!("{:#?}", dir.path());
-    dir
-}
+use assert_fs::{prelude::*, TempDir};
+use predicates::prelude::*;
 
 // TODO: Rework unix shims
 #[cfg(unix)]
@@ -24,6 +18,13 @@ pub fn required_files<'a>() -> [&'a str; 3] {
 #[cfg(windows)]
 pub fn required_files<'a>() -> [&'a str; 5] {
     ["node.exe", "npm", "npm.cmd", "npx", "npx.cmd"]
+}
+
+fn integration_dir() -> TempDir {
+    let dir = TempDir::new().expect("Could not create temp dir");
+
+    println!("{:#?}", dir.path());
+    dir
 }
 
 pub fn setup_integration_test() -> Result<(TempDir, Command)> {
@@ -48,21 +49,20 @@ pub fn install_mock_version(path: &Path, version_str: &str) -> Result<()> {
     Result::Ok(())
 }
 
-#[allow(dead_code)]
 #[cfg(windows)]
-pub fn create_shim(version_str: &str) -> Result<()> {
+pub fn create_shim(temp_dir: &Path, version_str: &str) -> Result<()> {
     symlink_dir(
-        integration_dir().join(version_str),
-        integration_dir().join("shims"),
+        temp_dir.join("versions").join(version_str),
+        temp_dir.join("shims"),
     )
     .map_err(anyhow::Error::from)
 }
 
 #[cfg(unix)]
-pub fn create_shim(version_str: &str) -> Result<()> {
+pub fn create_shim(temp_dir: &Path, version_str: &str) -> Result<()> {
     symlink(
-        integration_dir().join(version_str),
-        integration_dir().join("shims"),
+        temp_dir.join("versions").join(version_str),
+        temp_dir.join("shims"),
     )
     .map_err(anyhow::Error::from)
 }
@@ -102,45 +102,31 @@ stderr output:
     Result::Ok(())
 }
 
-pub fn assert_version_installed(version_str: &str, installed: bool) -> Result<()> {
-    let path = integration_dir();
+pub fn assert_version_installed(
+    temp_dir: &TempDir,
+    version_str: &str,
+    expect_installed: bool,
+) -> Result<()> {
+    let versions_dir = temp_dir.child("versions");
 
     for filename in required_files().iter() {
-        let file_path = path.join("versions").join(version_str).join(filename);
+        let file_path = versions_dir.child(version_str).child(filename);
 
-        assert_eq!(
-            file_path.exists(),
-            installed,
-            "{:#?} does{}exist",
-            file_path,
-            if !installed { " " } else { " not " }
-        );
+        if expect_installed {
+            file_path.assert(predicates::path::exists());
+        } else {
+            file_path.assert(predicates::path::exists().not());
+        }
     }
 
     Result::Ok(())
 }
 
-pub fn assert_version_selected(version_str: &str, selected: bool) -> Result<()> {
-    let path = integration_dir().join("shims");
+pub fn get_selected_version(temp_dir: &TempDir) -> Option<String> {
+    let shims_dir = temp_dir.child("shims");
 
-    // symlink_metadata errors if the path doesn't exist
-    if fs::symlink_metadata(&path).is_ok() {
-        let real_path = fs::read_link(path).unwrap();
-
-        assert_eq!(
-            real_path.to_str().unwrap().contains(version_str),
-            selected,
-            "{} is{}selected (Expected it{}to be).",
-            version_str,
-            if selected { " not " } else { " " },
-            if !selected { " not " } else { " " },
-        );
-    } else if selected {
-        panic!(
-            "{} should have been selected but no version is.",
-            version_str
-        )
+    match fs::read_link(&shims_dir) {
+        Result::Ok(path) => Some(path.file_name().unwrap().to_string_lossy().to_string()),
+        Result::Err(_) => None,
     }
-
-    Result::Ok(())
 }
