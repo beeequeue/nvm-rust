@@ -216,7 +216,7 @@ impl InstalledNodeVersion {
             }
 
             let entry = entry.unwrap();
-            let result = parse_version_str(&String::from(entry.file_name().to_string_lossy()));
+            let result = parse_version_str(entry.file_name().to_string_lossy().as_ref());
 
             if let Result::Ok(version) = result {
                 version_dirs.push(version);
