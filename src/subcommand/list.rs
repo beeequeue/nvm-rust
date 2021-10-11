@@ -71,7 +71,7 @@ impl Action<ListCommand> for ListCommand {
             .iter()
             .map(|version| {
                 let version_status = match latest_per_major.get(&version.version().major) {
-                    Some(latest) if latest.version().gt(&version.version()) => {
+                    Some(latest) if latest.version().gt(version.version()) => {
                         VersionStatus::Outdated(latest.deref().clone())
                     },
                     Some(_) => VersionStatus::Latest,
