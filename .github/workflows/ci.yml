@@ -8,6 +8,7 @@ env:
 
 jobs:
   build:
+    continue-on-error: true
     strategy:
       matrix:
         os: [ macos-latest, ubuntu-latest, windows-latest ]
@@ -32,6 +33,7 @@ jobs:
 
   test:
     timeout-minutes: 15
+    continue-on-error: true
     strategy:
       matrix:
         os: [ macos-latest, ubuntu-latest, windows-latest ]
