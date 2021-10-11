@@ -19,8 +19,10 @@ mod switch {
         let output = String::from_utf8(result.get_output().to_owned().stdout)?;
         let output = output.trim();
 
-
-        assert_eq!(get_selected_version(&temp_dir), Some(version_str.to_string()));
+        assert_eq!(
+            get_selected_version(&temp_dir),
+            Some(version_str.to_string())
+        );
         assert_eq!(output, "Switched to 12.18.3");
 
         temp_dir.close().map_err(anyhow::Error::from)
@@ -38,7 +40,10 @@ mod switch {
 
         let result = cmd.arg("use").arg("14").assert();
 
-        assert_eq!(get_selected_version(&temp_dir), Some(new_version.to_string()));
+        assert_eq!(
+            get_selected_version(&temp_dir),
+            Some(new_version.to_string())
+        );
         assert_outputs_contain(&result, "Switched to 14.5.0", "")?;
 
         temp_dir.close().map_err(anyhow::Error::from)
