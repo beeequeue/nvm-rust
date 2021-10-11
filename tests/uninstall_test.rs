@@ -1,50 +1,53 @@
-mod common;
+mod utils;
 
 mod uninstall {
     use anyhow::Result;
     use std::path::Path;
 
-    use crate::{
-        common,
-        common::{assert_outputs_contain, assert_version_installed, get_selected_version},
-    };
+    use crate::utils;
 
     fn setup_versions(temp_dir: &Path, versions: Vec<&str>) -> Result<()> {
         for version_str in versions.to_owned().into_iter() {
-            common::install_mock_version(temp_dir, version_str)?;
+            utils::install_mock_version(temp_dir, version_str)?;
         }
 
-        common::create_shim(temp_dir, versions.get(0).unwrap())
+        utils::create_shim(temp_dir, versions.get(0).unwrap())
     }
 
     #[test]
     fn can_uninstall_version_matching_range() -> Result<()> {
-        let (temp_dir, mut cmd) = common::setup_integration_test()?;
+        let (temp_dir, mut cmd) = utils::setup_integration_test()?;
 
         let version_str = "12.18.3";
         setup_versions(&temp_dir, vec!["14.5.0", version_str])?;
 
         let result = cmd.arg("uninstall").arg("12").assert();
 
-        assert_outputs_contain(&result, "Uninstalled 12.18.3!", "")?;
-        assert_version_installed(&temp_dir, version_str, false)?;
-        assert_eq!(get_selected_version(&temp_dir), Some("14.5.0".to_string()));
+        utils::assert_outputs_contain(&result, "Uninstalled 12.18.3!", "")?;
+        utils::assert_version_installed(&temp_dir, version_str, false)?;
+        assert_eq!(
+            utils::get_selected_version(&temp_dir),
+            Some("14.5.0".to_string())
+        );
 
         temp_dir.close().map_err(anyhow::Error::from)
     }
 
     #[test]
     fn can_uninstall_version_matching_exact_version() -> Result<()> {
-        let (temp_dir, mut cmd) = common::setup_integration_test()?;
+        let (temp_dir, mut cmd) = utils::setup_integration_test()?;
 
         let version_str = "12.18.3";
         setup_versions(&temp_dir, vec!["14.5.0", version_str])?;
 
         let result = cmd.arg("uninstall").arg(version_str).assert();
 
-        assert_outputs_contain(&result, "Uninstalled 12.18.3!", "")?;
-        assert_version_installed(&temp_dir, version_str, false)?;
-        assert_eq!(get_selected_version(&temp_dir), Some("14.5.0".to_string()));
+        utils::assert_outputs_contain(&result, "Uninstalled 12.18.3!", "")?;
+        utils::assert_version_installed(&temp_dir, version_str, false)?;
+        assert_eq!(
+            utils::get_selected_version(&temp_dir),
+            Some("14.5.0".to_string())
+        );
 
         temp_dir.close().map_err(anyhow::Error::from)
     }
@@ -81,7 +84,7 @@ mod uninstall {
 
     #[test]
     fn force_skips_prompt() -> Result<()> {
-        let (temp_dir, mut cmd) = common::setup_integration_test()?;
+        let (temp_dir, mut cmd) = utils::setup_integration_test()?;
 
         let version_str = "12.18.3";
         setup_versions(&temp_dir, vec![version_str])?;
@@ -92,27 +95,27 @@ mod uninstall {
             .arg("--force")
             .assert();
 
-        assert_outputs_contain(
+        utils::assert_outputs_contain(
             &result,
             "12.18.3 is currently selected.\nUninstalled 12.18.3!",
             "",
         )?;
 
-        assert_version_installed(&temp_dir, version_str, false)?;
-        assert_eq!(get_selected_version(&temp_dir), None);
+        utils::assert_version_installed(&temp_dir, version_str, false)?;
+        assert_eq!(utils::get_selected_version(&temp_dir), None);
 
         temp_dir.close().map_err(anyhow::Error::from)
     }
 
     #[test]
     fn exits_gracefully_if_no_version_is_found() -> Result<()> {
-        let (temp_dir, mut cmd) = common::setup_integration_test()?;
+        let (temp_dir, mut cmd) = utils::setup_integration_test()?;
 
         setup_versions(&temp_dir, vec!["14.5.0"])?;
 
         let result = cmd.arg("uninstall").arg("12").assert();
 
-        assert_outputs_contain(&result, "", "Error: >=12.0.0 <13.0.0-0 is not installed.")?;
+        utils::assert_outputs_contain(&result, "", "Error: >=12.0.0 <13.0.0-0 is not installed.")?;
 
         temp_dir.close().map_err(anyhow::Error::from)
     }
