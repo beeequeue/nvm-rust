@@ -92,7 +92,11 @@ mod uninstall {
 
         let mut cmd = Command::cargo_bin("nvm-rust").unwrap();
 
-        let result = cmd.arg("uninstall").arg(version_str).arg("--force").assert();
+        let result = cmd
+            .arg("uninstall")
+            .arg(version_str)
+            .arg("--force")
+            .assert();
         assert_outputs_contain(
             &result,
             "12.18.3 is currently selected.\nUninstalled 12.18.3!",
