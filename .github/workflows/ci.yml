@@ -29,7 +29,7 @@ jobs:
         with:
           key: build
 
-      - run: cargo build --all-features --locked --release --verbose
+      - run: cargo build --all-features --locked --release
 
   test:
     timeout-minutes: 15
@@ -54,7 +54,7 @@ jobs:
         with:
           key: test
 
-      - run: cargo test --all-features --verbose
+      - run: cargo test --all-features --nocapture
 
   clippy:
     runs-on: ubuntu-latest
