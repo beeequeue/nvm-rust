@@ -54,7 +54,7 @@ jobs:
         with:
           key: test
 
-      - run: cargo test --all-features --nocapture
+      - run: cargo test --all-features -- --nocapture
 
   clippy:
     runs-on: ubuntu-latest
