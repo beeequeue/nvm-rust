@@ -48,7 +48,7 @@ pub struct ListCommand {
     /// Filter by semantic versions.
     ///
     /// `12`, `^10.9`, `>=8.10`, `>=8, <9`
-    #[clap(short, long, validator = node_version::is_version_range)]
+    #[clap(short('F'), long, validator = node_version::is_version_range)]
     pub filter: Option<Range>,
 }
 
