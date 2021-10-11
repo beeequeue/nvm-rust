@@ -3,11 +3,7 @@ use std::os::unix::fs::symlink;
 #[cfg(windows)]
 use std::os::windows::fs::symlink_dir;
 use std::{
-    env,
-    fs::{
-        canonicalize, copy, create_dir_all, read_dir, read_link, remove_dir_all, remove_file,
-        symlink_metadata,
-    },
+    env, fs,
     path::{Path, PathBuf},
 };
 
@@ -19,7 +15,7 @@ pub fn integration_dir() -> PathBuf {
 
     ensure_dir_exists(&path).expect("integration dir exists");
 
-    canonicalize(path).expect("canonicalize integration dir path")
+    fs::canonicalize(path).expect("canonicalize integration dir path")
 }
 
 // TODO: Rework unix shims
@@ -35,7 +31,7 @@ pub fn required_files<'a>() -> [&'a str; 5] {
 
 fn ensure_dir_exists(path: &Path) -> Result<()> {
     if !path.exists() {
-        create_dir_all(path).context(format!("Could not create {:?}", path))?
+        fs::create_dir_all(path).context(format!("Could not create {:?}", path))?
     }
 
     Result::Ok(())
@@ -46,14 +42,14 @@ pub fn setup_integration_test() -> Result<()> {
 
     let path = integration_dir();
 
-    for entry in read_dir(path.to_owned())? {
+    for entry in fs::read_dir(path.to_owned())? {
         let name = entry?.file_name();
         let entry_path = path.join(name.to_owned());
 
         if entry_path.is_dir() || name == "shims" {
-            remove_dir_all(entry_path)?
+            fs::remove_dir_all(entry_path)?
         } else {
-            remove_file(entry_path)?
+            fs::remove_file(entry_path)?
         }
     }
 
@@ -61,25 +57,13 @@ pub fn setup_integration_test() -> Result<()> {
 }
 
 pub fn install_mock_version(version_str: &str) -> Result<()> {
-    let test_data_dir = PathBuf::from("test-data")
-        .join("versions")
-        .join(version_str);
-    let test_data_dir = canonicalize(test_data_dir).expect("Could not resolve stub version path");
+    let to_dir = integration_dir().join("versions").join(version_str);
+    fs::create_dir_all(to_dir.to_owned())?;
 
-    if !test_data_dir.exists() {
-        panic!(
-            "Tried to set up mock version {} which doesn't exist.",
-            version_str
-        );
-    }
-
-    let to_dir = integration_dir().join(version_str);
-    create_dir_all(to_dir.to_owned())?;
-
-    for entry in read_dir(test_data_dir.to_owned())? {
-        let name = entry?.file_name();
-
-        copy(test_data_dir.join(name.to_owned()), to_dir.join(name))?;
+    for file_name in required_files() {
+        let file_path = to_dir.join(file_name);
+        fs::write(&file_path, version_str)
+            .unwrap_or_else(|_| panic!("Failed to write to {:#?}", &file_path))
     }
 
     Result::Ok(())
@@ -161,8 +145,8 @@ pub fn assert_version_selected(version_str: &str, selected: bool) -> Result<()> 
     let path = integration_dir().join("shims");
 
     // symlink_metadata errors if the path doesn't exist
-    if symlink_metadata(&path).is_ok() {
-        let real_path = read_link(path).unwrap();
+    if fs::symlink_metadata(&path).is_ok() {
+        let real_path = fs::read_link(path).unwrap();
 
         assert_eq!(
             real_path.to_str().unwrap().contains(version_str),

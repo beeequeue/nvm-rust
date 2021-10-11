@@ -37,7 +37,7 @@ impl Action<InstallCommand> for InstallCommand {
             options.version
         ))?;
 
-        if InstalledNodeVersion::is_installed(config, version_to_install.version()) {
+        if !config.force && InstalledNodeVersion::is_installed(config, version_to_install.version()) {
             println!(
                 "{} is already installed - skipping...",
                 version_to_install.version()
