@@ -32,16 +32,16 @@ setting = AppSettings::ColoredHelp
 )]
 pub struct Config {
     /// Installation directory
-    #[clap(short, long, value_hint(ValueHint::DirPath), env("NVM_DIR"))]
+    #[clap(global(true), long, value_hint(ValueHint::DirPath), env("NVM_DIR"))]
     dir: Option<PathBuf>,
     /// bin directory
-    #[clap(short, long, value_hint(ValueHint::DirPath), env("NVM_SHIMS_DIR"))]
+    #[clap(global(true), long, value_hint(ValueHint::DirPath), env("NVM_SHIMS_DIR"))]
     shims_dir: Option<PathBuf>,
     /// Level of verbosity, can be used multiple times
-    #[clap(short, long, parse(from_occurrences))]
+    #[clap(global(true), hidden(true), short, long, parse(from_occurrences))]
     verbose: i32,
-    /// Accept any prompts needed for command to complete
-    #[clap(short, long)]
+    /// Accept any prompts needed for the command to complete
+    #[clap(global(true), short, long)]
     force: bool,
 
     #[clap(subcommand)]
