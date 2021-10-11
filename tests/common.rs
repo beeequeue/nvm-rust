@@ -2,20 +2,17 @@
 use std::os::unix::fs::symlink;
 #[cfg(windows)]
 use std::os::windows::fs::symlink_dir;
-use std::{
-    env, fs,
-    path::{Path, PathBuf},
-};
+use std::{fs, path::Path};
 
-use anyhow::{Context, Result};
-use assert_cmd::assert::Assert;
+use anyhow::Result;
+use assert_cmd::{assert::Assert, Command};
+use assert_fs::TempDir;
 
-pub fn integration_dir() -> PathBuf {
-    let path = PathBuf::from("./integration");
+pub fn integration_dir() -> TempDir {
+    let dir = TempDir::new().expect("Could not create temp dir");
 
-    ensure_dir_exists(&path).expect("integration dir exists");
-
-    fs::canonicalize(path).expect("canonicalize integration dir path")
+    println!("{:#?}", dir.path());
+    dir
 }
 
 // TODO: Rework unix shims
@@ -29,35 +26,17 @@ pub fn required_files<'a>() -> [&'a str; 5] {
     ["node.exe", "npm", "npm.cmd", "npx", "npx.cmd"]
 }
 
-fn ensure_dir_exists(path: &Path) -> Result<()> {
-    if !path.exists() {
-        fs::create_dir_all(path).context(format!("Could not create {:?}", path))?
-    }
+pub fn setup_integration_test() -> Result<(TempDir, Command)> {
+    let temp_dir = integration_dir();
 
-    Result::Ok(())
+    let mut cmd = Command::cargo_bin("nvm-rust").expect("Could not create Command");
+    cmd.args(&["--dir", &temp_dir.to_string_lossy()]);
+
+    Result::Ok((temp_dir, cmd))
 }
 
-pub fn setup_integration_test() -> Result<()> {
-    env::set_var("NVM_DIR", integration_dir());
-
-    let path = integration_dir();
-
-    for entry in fs::read_dir(path.to_owned())? {
-        let name = entry?.file_name();
-        let entry_path = path.join(name.to_owned());
-
-        if entry_path.is_dir() || name == "shims" {
-            fs::remove_dir_all(entry_path)?
-        } else {
-            fs::remove_file(entry_path)?
-        }
-    }
-
-    Result::Ok(())
-}
-
-pub fn install_mock_version(version_str: &str) -> Result<()> {
-    let to_dir = integration_dir().join("versions").join(version_str);
+pub fn install_mock_version(path: &Path, version_str: &str) -> Result<()> {
+    let to_dir = path.join("versions").join(version_str);
     fs::create_dir_all(to_dir.to_owned())?;
 
     for file_name in required_files() {
