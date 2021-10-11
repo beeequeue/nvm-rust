@@ -3,7 +3,7 @@ use std::os::unix::fs::symlink;
 #[cfg(windows)]
 use std::os::windows::fs::symlink_dir;
 use std::{
-    env::set_var,
+    env,
     fs::{
         canonicalize, copy, create_dir_all, read_dir, read_link, remove_dir_all, remove_file,
         symlink_metadata,
@@ -42,7 +42,7 @@ fn ensure_dir_exists(path: &Path) -> Result<()> {
 }
 
 pub fn setup_integration_test() -> Result<()> {
-    set_var("NVM_DIR", integration_dir());
+    env::set_var("NVM_DIR", integration_dir());
 
     let path = integration_dir();
 
@@ -143,7 +143,7 @@ pub fn assert_version_installed(version_str: &str, installed: bool) -> Result<()
     let path = integration_dir();
 
     for filename in required_files().iter() {
-        let file_path = path.join(version_str).join(filename);
+        let file_path = path.join("versions").join(version_str).join(filename);
 
         assert_eq!(
             file_path.exists(),

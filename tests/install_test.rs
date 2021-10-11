@@ -18,7 +18,7 @@ mod install {
         let version_str = "12.7.0";
 
         let mut cmd = Command::cargo_bin("nvm-rust").unwrap();
-        let result = cmd.arg("install").arg(version_range).assert();
+        let result = cmd.arg("install").arg("--force").arg(version_range).assert();
 
         assert_outputs_contain(
             &result,
@@ -37,7 +37,7 @@ mod install {
         let version_str = "12.18.3";
 
         let mut cmd = Command::cargo_bin("nvm-rust").unwrap();
-        let result = cmd.arg("install").arg(version_str).assert();
+        let result = cmd.arg("install").arg("--force").arg(version_str).assert();
 
         assert_outputs_contain(
             &result,
@@ -71,7 +71,7 @@ mod install {
 
         let mut cmd = Command::cargo_bin("nvm-rust").unwrap();
 
-        let result = cmd.arg("install").arg("-f").arg(version_str).assert();
+        let result = cmd.arg("install").arg("--force").arg(version_str).assert();
         assert_outputs_contain(
             &result,
             "Downloading from https://nodejs.org/dist/v12.18.3/node-v12.18.3-",
@@ -88,12 +88,12 @@ mod install {
     #[serial]
     fn exits_gracefully_if_no_version_is_found() -> Result<()> {
         let mut cmd = Command::cargo_bin("nvm-rust").unwrap();
-        let result = cmd.arg("install").arg("12.99.99").assert();
+        let result = cmd.arg("install").arg("--force").arg("12.99.99").assert();
 
         assert_outputs_contain(
             &result,
             "",
-            "Error: Did not find a version matching `12.99.99`, (parsed as `=12.99.99`)",
+            "Error: Did not find a version matching `12.99.99`!",
         )?;
 
         Result::Ok(())
