@@ -18,7 +18,11 @@ mod install {
         let version_str = "12.7.0";
 
         let mut cmd = Command::cargo_bin("nvm-rust").unwrap();
-        let result = cmd.arg("install").arg("--force").arg(version_range).assert();
+        let result = cmd
+            .arg("install")
+            .arg("--force")
+            .arg(version_range)
+            .assert();
 
         assert_outputs_contain(
             &result,

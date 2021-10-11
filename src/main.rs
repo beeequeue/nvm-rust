@@ -35,7 +35,12 @@ pub struct Config {
     #[clap(global(true), long, value_hint(ValueHint::DirPath), env("NVM_DIR"))]
     dir: Option<PathBuf>,
     /// bin directory
-    #[clap(global(true), long, value_hint(ValueHint::DirPath), env("NVM_SHIMS_DIR"))]
+    #[clap(
+        global(true),
+        long,
+        value_hint(ValueHint::DirPath),
+        env("NVM_SHIMS_DIR")
+    )]
     shims_dir: Option<PathBuf>,
     /// Level of verbosity, can be used multiple times
     #[clap(global(true), hidden(true), short, long, parse(from_occurrences))]
