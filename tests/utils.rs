@@ -9,10 +9,9 @@ use assert_cmd::{assert::Assert, Command};
 use assert_fs::{prelude::*, TempDir};
 use predicates::prelude::*;
 
-// TODO: Rework unix shims
 #[cfg(unix)]
 pub fn required_files<'a>() -> [&'a str; 3] {
-    ["bin/node", "bin/npm", "bin/npx"]
+    ["node", "npm", "npx"]
 }
 
 #[cfg(windows)]
@@ -37,13 +36,22 @@ pub fn setup_integration_test() -> Result<(TempDir, Command)> {
 }
 
 pub fn install_mock_version(path: &Path, version_str: &str) -> Result<()> {
-    let to_dir = path.join("versions").join(version_str);
-    fs::create_dir_all(to_dir.to_owned())?;
+    let mut to_dir = path.join("versions");
+
+    to_dir = to_dir.join(version_str);
+    // Unix shims are under `bin/xxx`
+    #[cfg(unix)]
+    {
+        to_dir = to_dir.join("bin");
+    }
+
+    fs::create_dir_all(&to_dir)?;
 
     for file_name in required_files() {
         let file_path = to_dir.join(file_name);
+
         fs::write(&file_path, version_str)
-            .unwrap_or_else(|_| panic!("Failed to write to {:#?}", &file_path))
+            .unwrap_or_else(|err| panic!("Failed to write to {:#?}: {}", &file_path, err))
     }
 
     Result::Ok(())
@@ -60,11 +68,15 @@ pub fn create_shim(temp_dir: &Path, version_str: &str) -> Result<()> {
 
 #[cfg(unix)]
 pub fn create_shim(temp_dir: &Path, version_str: &str) -> Result<()> {
-    symlink(
-        temp_dir.join("versions").join(version_str),
-        temp_dir.join("shims"),
-    )
-    .map_err(anyhow::Error::from)
+    let mut shims_path = temp_dir.join("versions").join(version_str);
+
+    // Unix shims are under `bin/xxx`
+    #[cfg(unix)]
+    {
+        shims_path = shims_path.join("bin");
+    }
+
+    symlink(&shims_path, temp_dir.join("shims")).map_err(anyhow::Error::from)
 }
 
 #[derive(PartialEq, Eq)]
@@ -110,7 +122,15 @@ pub fn assert_version_installed(
     let versions_dir = temp_dir.child("versions");
 
     for filename in required_files().iter() {
-        let file_path = versions_dir.child(version_str).child(filename);
+        let mut file_path = versions_dir.child(version_str);
+
+        // Unix shims are under `bin/xxx`
+        #[cfg(unix)]
+        {
+            file_path = file_path.child("bin");
+        }
+
+        file_path = file_path.child(filename);
 
         if expect_installed {
             file_path.assert(predicates::path::exists());
@@ -123,10 +143,14 @@ pub fn assert_version_installed(
 }
 
 pub fn get_selected_version(temp_dir: &TempDir) -> Option<String> {
-    let shims_dir = temp_dir.child("shims");
+    let symlink_path = temp_dir.child("shims");
 
-    match fs::read_link(&shims_dir) {
-        Result::Ok(path) => Some(path.file_name().unwrap().to_string_lossy().to_string()),
+    match fs::read_link(&symlink_path) {
+        Result::Ok(shims_dir) => {
+            let file_path = shims_dir.join(required_files()[0]);
+
+            Some(fs::read_to_string(&file_path).unwrap())
+        },
         Result::Err(_) => None,
     }
 }

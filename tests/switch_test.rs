@@ -16,11 +16,11 @@ mod switch {
         let output = String::from_utf8(result.get_output().to_owned().stdout)?;
         let output = output.trim();
 
+        assert_eq!(output, "Switched to 12.18.3");
         assert_eq!(
             utils::get_selected_version(&temp_dir),
             Some(version_str.to_string())
         );
-        assert_eq!(output, "Switched to 12.18.3");
 
         temp_dir.close().map_err(anyhow::Error::from)
     }

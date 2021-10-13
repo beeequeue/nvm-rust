@@ -85,13 +85,7 @@ fn set_shims(config: &Config, version: &Version) -> Result<()> {
     let shims_dir = config.get_shims_dir();
 
     if read_link(&shims_dir).is_ok() {
-        if let Result::Err(err) = remove_file(&shims_dir) {
-            anyhow::bail!(
-                "Could not remove old symlink at {:?}: {}",
-                shims_dir,
-                err.to_string()
-            );
-        }
+        remove_file(&shims_dir)?;
     }
 
     symlink(
