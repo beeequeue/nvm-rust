@@ -8,10 +8,16 @@ env:
 
 jobs:
   build:
-    continue-on-error: true
     strategy:
+      fail-fast: false
       matrix:
-        os: [ macos-latest, ubuntu-latest, windows-latest ]
+        include:
+          - os: macos-latest
+            file-name: something
+          - os: ubuntu-latest
+            file-name: something
+          - os: windows-latest
+            file-name: nvm-rust.exe
 
     runs-on: ${{ matrix.os }}
 
@@ -30,6 +36,14 @@ jobs:
           key: build
 
       - run: cargo build --all-features --locked --release
+
+      - run: ls -lh target/release
+
+#      - name: Upload artifacts
+#        uses: actions/upload-artifact@v2
+#        with:
+#          name: build-${ matrix.os }}
+#          path: target/release/${{ matrix.file-name }}
 
   test:
     timeout-minutes: 15
