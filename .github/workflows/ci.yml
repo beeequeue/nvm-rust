@@ -13,11 +13,14 @@ jobs:
       matrix:
         include:
           - os: macos-latest
-            file-name: something
+            file-name: nvm-rust
+            display-name: nvm-rust-macos64.exe
           - os: ubuntu-latest
-            file-name: something
+            file-name: nvm-rust
+            display-name: nvm-rust-linux64.exe
           - os: windows-latest
             file-name: nvm-rust.exe
+            display-name: nvm-rust-win64.exe
 
     runs-on: ${{ matrix.os }}
 
@@ -37,13 +40,11 @@ jobs:
 
       - run: cargo build --all-features --locked --release
 
-      - run: ls -lh target/release
-
-#      - name: Upload artifacts
-#        uses: actions/upload-artifact@v2
-#        with:
-#          name: build-${ matrix.os }}
-#          path: target/release/${{ matrix.file-name }}
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: build-${ matrix.os }}
+          path: target/release/${{ matrix.file-name }}
 
   test:
     timeout-minutes: 15
