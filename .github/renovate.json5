@@ -1,0 +1,17 @@
+{
+  $schema: "https://docs.renovatebot.com/renovate-schema.json",
+  extends: ["config:base"],
+  prHourlyLimit: 5,
+  prConcurrentLimit: 5,
+  branchConcurrentLimit: 5,
+  schedule: ["before 11am"],
+  labels: ["dependencies"],
+  baseBranches: ["main"],
+  packageRules: [
+    {
+      matchUpdateTypes: ["patch", "minor"],
+      matchManagers: ["cargo"],
+      automerge: true,
+    },
+  ],
+}
