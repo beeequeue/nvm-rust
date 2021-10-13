@@ -1,20 +1,29 @@
 use anyhow::Result;
-use clap::ArgMatches;
-use semver::{Compat, VersionReq};
+use clap::{AppSettings, Clap};
+use node_semver::Range;
 
-use crate::{config::Config, subcommand::Subcommand};
+use crate::{node_version::is_version_range, subcommand::Action, Config};
 
-pub struct ParseVersion;
+#[derive(Clap, Clone, Debug)]
+#[clap(
+about = "Echo what a version string will be parsed to",
+alias = "pv",
+setting = AppSettings::ColoredHelp,
+setting = AppSettings::Hidden
+)]
+pub struct ParseVersionCommand {
+    /// The semver range to echo the parsed result of
+    #[clap(validator = is_version_range)]
+    pub version: String,
+}
 
-impl<'c> Subcommand<'c> for ParseVersion {
-    fn run(_config: &'c Config, matches: &ArgMatches) -> Result<()> {
-        let input = matches.value_of("version").unwrap();
-
-        match VersionReq::parse_compat(input, Compat::Npm) {
+impl Action<ParseVersionCommand> for ParseVersionCommand {
+    fn run(_: &Config, options: &ParseVersionCommand) -> Result<()> {
+        match Range::parse(&options.version) {
             Ok(result) => {
                 println!(
                     "{:^pad$}\n{:^pad$}\n{}",
-                    input,
+                    options.version,
                     "⬇",
                     result.to_string(),
                     pad = result.to_string().len()
@@ -22,7 +31,11 @@ impl<'c> Subcommand<'c> for ParseVersion {
                 Ok(())
             },
             Err(err) => {
-                println!("Failed to parse `{}`: `{}`", input, err.to_string());
+                println!(
+                    "Failed to parse `{}`: `{}`",
+                    options.version,
+                    err.to_string()
+                );
                 Ok(())
             },
         }

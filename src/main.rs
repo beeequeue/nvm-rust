@@ -1,81 +1,123 @@
-#![feature(const_fn)]
+use std::{
+    fs::create_dir_all,
+    path::{Path, PathBuf},
+};
 
-use anyhow::{Context, Result};
-use clap::{clap_app, crate_version};
+use anyhow::Result;
+use clap::{AppSettings, Clap, ValueHint};
 
-use crate::subcommand::parse_version::ParseVersion;
-use config::Config;
-use node_version::NodeVersion;
-use subcommand::{install::Install, list::List, switch::Switch, uninstall::Uninstall, Subcommand};
+use crate::subcommand::{
+    install::InstallCommand, list::ListCommand, parse_version::ParseVersionCommand,
+    switch::SwitchCommand, uninstall::UninstallCommand, Action,
+};
 
-mod config;
+mod archives;
 mod node_version;
 mod subcommand;
-mod utils;
 
-fn validate_number(value: &str) -> Result<i32> {
-    value.parse().context(format!("{} is not a number!", value))
+#[derive(Clap, Clone, Debug)]
+enum Subcommands {
+    List(ListCommand),
+    Install(InstallCommand),
+    Uninstall(UninstallCommand),
+    Use(SwitchCommand),
+    ParseVersion(ParseVersionCommand),
+}
+
+#[derive(Clap, Debug)]
+#[clap(
+name = "nvm(-rust)",
+about = "Node Version Manager (but better, and in Rust)",
+setting = AppSettings::ColoredHelp
+)]
+pub struct Config {
+    /// Installation directory
+    #[clap(global(true), long, value_hint(ValueHint::DirPath), env("NVM_DIR"))]
+    dir: Option<PathBuf>,
+    /// bin directory
+    #[clap(
+        global(true),
+        long,
+        value_hint(ValueHint::DirPath),
+        env("NVM_SHIMS_DIR")
+    )]
+    shims_dir: Option<PathBuf>,
+    /// Level of verbosity, can be used multiple times
+    #[clap(global(true), hidden(true), short, long, parse(from_occurrences))]
+    verbose: i32,
+    /// Accept any prompts needed for the command to complete
+    #[clap(global(true), short, long)]
+    force: bool,
+
+    #[clap(subcommand)]
+    command: Subcommands,
+}
+
+impl Config {
+    pub fn get_dir(&self) -> PathBuf {
+        self.dir
+            .as_ref()
+            .map_or_else(Config::default_dir, |r| r.clone())
+    }
+
+    pub fn get_shims_dir(&self) -> PathBuf {
+        self.shims_dir
+            .as_ref()
+            .map_or_else(|| self.get_dir().join("shims"), |r| r.clone())
+    }
+
+    /// Path to directory containing node versions
+    fn get_versions_dir(&self) -> PathBuf {
+        self.get_dir().join("versions")
+    }
+
+    fn with_force(&self) -> Self {
+        Self {
+            force: true,
+            verbose: self.verbose,
+            dir: Some(self.get_dir()),
+            shims_dir: Some(self.get_shims_dir()),
+            command: self.command.clone(),
+        }
+    }
+
+    #[cfg(windows)]
+    fn default_dir() -> PathBuf {
+        dirs::data_local_dir().unwrap().join("nvm-rust")
+    }
+
+    #[cfg(unix)]
+    fn default_dir() -> PathBuf {
+        dirs::home_dir().unwrap().join("nvm-rust")
+    }
+}
+
+fn ensure_dir_exists(path: &Path) {
+    if !path.exists() {
+        create_dir_all(path.to_path_buf())
+            .unwrap_or_else(|err| panic!("Could not create {:?} - {}", path, err));
+
+        println!("Created nvm dir at {:?}", path);
+    }
+
+    if !path.is_dir() {
+        panic!("{:?} is not a directory! Please rename it.", path)
+    }
 }
 
 fn main() -> Result<()> {
-    let app = clap_app!("nvm(-rust)" =>
-        (version: crate_version!())
-        (about: "Node Version Manager (but in Rust)")
-        (@arg verbose: -V --verbose "Print debugging information")
-        (@subcommand list =>
-            (alias: "ls")
-            (about: "List installed and released node versions")
-            (@arg installed: -i --installed "Only display installed versions")
-            (@arg online: -o --online --available "Only display available versions")
-            (@arg filter: {NodeVersion::is_version_range} "Filter by semantic versions. e.g. `12`, `^10.9`, `>=8.10`, `>=8, <9`")
-        )
-        (@subcommand install =>
-            (alias: "i")
-            (about: "Install a new node version")
-            (@arg force: -f --force "Install version even if it's already installed")
-            (@arg version: +required {NodeVersion::is_version_range} "A semver range. The latest version matching this range will be installed.")
-        )
-        (@subcommand uninstall =>
-            (alias: "u")
-            (alias: "r")
-            (about: "Uninstall an installed node version")
-            (@arg force: -f --force "Skip prompt if uninstalling selected version.")
-            (@arg version: +required {NodeVersion::is_version_range} "A semver range. The latest installed version matching this range will be removed.")
-        )
-        (@subcommand use =>
-            (alias: "switch")
-            (alias: "u")
-            (about: "Switch to an installed node version")
-            (@arg version: {NodeVersion::is_version_range} "A semver range. The latest version matching this range will be switched to.\nRespects `.nvmrc` files.")
-        )
-        (@subcommand parse_version =>
-            (alias: "parse-version")
-            (alias: "pv")
-            (about: "Echo what a version string will be parsed to.")
-            (@arg version: {NodeVersion::is_version_range} "The semver range to echo the parsed result of.")
-        )
-    );
+    let config: Config = Config::parse();
 
-    let config = Config::from_env_and_args(app.get_arguments());
-    let matches = app.get_matches();
+    ensure_dir_exists(&config.get_dir());
+    ensure_dir_exists(&config.get_versions_dir());
 
-    if matches.is_present("verbose") {
-        println!("{:#?}\n", config);
-    }
-
-    let result = match matches.subcommand_name() {
-        Some("list") => List::run(&config, matches.subcommand_matches("list").unwrap()),
-        Some("install") => Install::run(&config, matches.subcommand_matches("install").unwrap()),
-        Some("uninstall") => {
-            Uninstall::run(&config, matches.subcommand_matches("uninstall").unwrap())
-        },
-        Some("use") => Switch::run(&config, matches.subcommand_matches("use").unwrap()),
-        Some("parse_version") => ParseVersion::run(
-            &config,
-            matches.subcommand_matches("parse_version").unwrap(),
-        ),
+    match config.command {
+        Subcommands::List(ref options) => ListCommand::run(&config, options),
+        Subcommands::Install(ref options) => InstallCommand::run(&config, options),
+        Subcommands::Uninstall(ref options) => UninstallCommand::run(&config, options),
+        Subcommands::Use(ref options) => SwitchCommand::run(&config, options),
+        Subcommands::ParseVersion(ref options) => ParseVersionCommand::run(&config, options),
+        #[allow(unreachable_patterns)]
         _ => Result::Ok(()),
-    };
-
-    result
+    }
 }

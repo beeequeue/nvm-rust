@@ -1,26 +1,29 @@
 [package]
 name = "nvm-rust"
 version = "0.1.0"
-authors = ["BeeeQueue <adam.lj.haglund@gmail.com>"]
-edition = "2018"
+authors = ["BeeeQueue <adam@haglund.dev>"]
+edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-anyhow = "1.0.36"
-clap = "3.0.0-beta.1"
-reqwest = { version = "0.10.10", features = ["blocking"] }
-semver = { version = "0.11.0", features = ["serde"] }
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0.57"
+anyhow = "1.0.44"
+clap = "3.0.0-beta.4"
+dialoguer = "0.8.0"
+dirs = "4.0.0"
+node-semver = "2.0.0"
+reqwest = { version = "0.11.4", features = ["blocking"] }
+serde = { version = "1.0.130", features = ["derive"] }
+serde_json = "1.0.68"
 
 [target.'cfg(unix)'.dependencies]
-flate2  = "1.0.19"
-tar  = "0.4.30"
+flate2  = "1.0.22"
+tar  = "0.4.37"
 
 [target.'cfg(windows)'.dependencies]
-zip = "0.5.6"
+zip = "0.5.13"
 
 [dev-dependencies]
 assert_cmd = "1.0.2"
-serial_test = "0.5.0"
+assert_fs = "1.0.6"
+predicates = "2.0.3"
