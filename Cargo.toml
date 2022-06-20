@@ -21,7 +21,7 @@ flate2  = "1.0.24"
 tar  = "0.4.38"
 
 [target.'cfg(windows)'.dependencies]
-zip = "0.5.13"
+zip = "0.6.2"
 
 [dev-dependencies]
 assert_cmd = "2.0.4"
