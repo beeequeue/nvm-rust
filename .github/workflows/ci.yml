@@ -36,7 +36,7 @@ jobs:
           default: true
 
       - name: Rust Cache
-        uses: Swatinem/rust-cache@v1.3.0
+        uses: Swatinem/rust-cache@v1
         with:
           key: build
 
@@ -67,7 +67,7 @@ jobs:
           default: true
 
       - name: Rust Cache
-        uses: Swatinem/rust-cache@v1.3.0
+        uses: Swatinem/rust-cache@v1
         with:
           key: test
 
