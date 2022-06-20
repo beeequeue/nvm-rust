@@ -43,7 +43,7 @@ jobs:
       - run: cargo build --all-features --locked --release
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: build-${{ matrix.os }}
           path: target/release/${{ matrix.file-name }}
