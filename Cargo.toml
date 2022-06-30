@@ -8,7 +8,7 @@ edition = "2021"
 
 [dependencies]
 anyhow = "1.0.58"
-clap = "3.0.0-beta.4"
+clap = "3.2.8"
 dialoguer = "0.10.1"
 dirs = "4.0.0"
 node-semver = "2.0.0"
