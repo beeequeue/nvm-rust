@@ -1,3 +1,5 @@
+#![feature(let_chains)]
+
 use std::{
     fs::create_dir_all,
     path::{Path, PathBuf},
@@ -14,6 +16,7 @@ use crate::subcommand::{
 mod archives;
 mod node_version;
 mod subcommand;
+mod files;
 
 #[derive(Parser, Clone, Debug)]
 enum Subcommands {
