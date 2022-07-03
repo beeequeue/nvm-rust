@@ -29,6 +29,8 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      - uses: arduino/setup-task@v1
+
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
@@ -40,7 +42,7 @@ jobs:
         with:
           key: build
 
-      - run: cargo build --all-features --locked --release
+      - run: task build:release
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v3
@@ -60,6 +62,8 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      - uses: arduino/setup-task@v1
+
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
@@ -71,13 +75,15 @@ jobs:
         with:
           key: test
 
-      - run: cargo test --all-features -- --nocapture
+      - run: task test -- --nocapture
 
   clippy:
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v3
+
+      - uses: arduino/setup-task@v1
 
       - uses: actions-rs/toolchain@v1
         with:
@@ -86,9 +92,8 @@ jobs:
           override: true
           components: rustfmt, clippy
 
-      - run: cargo fmt --all -- --check
+      - run: task format -- --check
 
       - uses: actions-rs/clippy-check@v1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          args: --all-features
