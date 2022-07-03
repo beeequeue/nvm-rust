@@ -23,8 +23,8 @@ pub struct InstallCommand {
     #[clap(validator = node_version::is_version_range)]
     pub version: Range,
     /// Switch to the new version after installing it
-    #[clap(long, short)]
-    pub switch: Option<bool>,
+    #[clap(long, short, default_value("false"))]
+    pub switch: bool,
 }
 
 impl Action<InstallCommand> for InstallCommand {
@@ -55,12 +55,11 @@ impl Action<InstallCommand> for InstallCommand {
         )?;
 
         if config.force
-            || (options.switch.is_none()
+            || (options.switch
                 && dialoguer::Confirm::new()
                     .with_prompt(format!("Switch to {}?", version_to_install.to_string()))
                     .default(true)
                     .interact()?)
-            || options.switch.unwrap()
         {
             SwitchCommand::run(
                 &config.with_force(),

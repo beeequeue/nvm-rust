@@ -6,7 +6,7 @@ tasks:
     cmds:
       - cargo clippy
   lint:fix:
-    desc: Lint code
+    desc: Lint code and fix problems with autofixes
     cmds:
       - cargo clippy --fix --allow-staged --allow-dirty
 
@@ -24,6 +24,11 @@ tasks:
       - tests/**
     cmds:
       - cargo test
+
+  run:
+    desc: "Run the CLI with a debug build: task run -- <...args>"
+    cmds:
+      - cargo run
 
   build:
     desc: Build debug artifacts

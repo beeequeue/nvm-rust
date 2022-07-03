@@ -7,11 +7,11 @@ mod uninstall {
     use crate::utils;
 
     fn setup_versions(temp_dir: &Path, versions: Vec<&str>) -> Result<()> {
-        for version_str in versions.to_owned().into_iter() {
+        for version_str in versions.iter().copied() {
             utils::install_mock_version(temp_dir, version_str)?;
         }
 
-        utils::create_shim(temp_dir, versions.get(0).unwrap())
+        utils::create_shim(temp_dir, versions.first().unwrap())
     }
 
     #[test]
