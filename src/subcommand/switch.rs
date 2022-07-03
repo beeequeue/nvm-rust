@@ -9,7 +9,7 @@ use std::os::unix::fs::symlink;
 use std::os::windows::fs::symlink_dir;
 
 use anyhow::Result;
-use clap::{AppSettings, Clap};
+use clap::{AppSettings, Parser};
 use node_semver::{Range, Version};
 
 use crate::{
@@ -19,7 +19,7 @@ use crate::{
     Config,
 };
 
-#[derive(Clap, Clone, Debug)]
+#[derive(Parser, Clone, Debug)]
 #[clap(
 about = "Switch to an installed node version",
 alias = "switch",
