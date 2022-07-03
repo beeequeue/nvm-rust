@@ -25,7 +25,7 @@ impl Action<ParseVersionCommand> for ParseVersionCommand {
                     "{:^pad$}\n{:^pad$}\n{}",
                     options.version,
                     "⬇",
-                    result.to_string(),
+                    result,
                     pad = result.to_string().len()
                 );
                 Ok(())
@@ -34,7 +34,7 @@ impl Action<ParseVersionCommand> for ParseVersionCommand {
                 println!(
                     "Failed to parse `{}`: `{}`",
                     options.version,
-                    err.to_string()
+                    err
                 );
                 Ok(())
             },

@@ -57,6 +57,7 @@ pub fn install_mock_version(path: &Path, version_str: &str) -> Result<()> {
     Result::Ok(())
 }
 
+#[allow(dead_code)]
 #[cfg(windows)]
 pub fn create_shim(temp_dir: &Path, version_str: &str) -> Result<()> {
     symlink_dir(
@@ -114,6 +115,7 @@ stderr output:
     Result::Ok(())
 }
 
+#[allow(dead_code)]
 pub fn assert_version_installed(
     temp_dir: &TempDir,
     version_str: &str,
@@ -142,6 +144,7 @@ pub fn assert_version_installed(
     Result::Ok(())
 }
 
+#[allow(dead_code)]
 pub fn get_selected_version(temp_dir: &TempDir) -> Option<String> {
     let symlink_path = temp_dir.child("shims");
 

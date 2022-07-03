@@ -79,7 +79,7 @@ impl OnlineNodeVersion {
 
         let url = format!(
             "https://nodejs.org/dist/v{}/{}",
-            self.version.to_string(),
+            self.version,
             file_name
         );
 
@@ -90,7 +90,7 @@ impl OnlineNodeVersion {
     fn get_file(&self) -> String {
         format!(
             "node-v{version}-win-{arch}.zip",
-            version = self.version().to_string(),
+            version = self.version(),
             arch = if cfg!(target_arch = "x86") {
                 "x86"
             } else {

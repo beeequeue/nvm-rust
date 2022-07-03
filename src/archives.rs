@@ -26,16 +26,16 @@ pub fn extract_archive(bytes: Response, path: &Path) -> Result<()> {
 
     for i in 0..archive.len() {
         let mut item = archive.by_index(i).unwrap();
-        let file_path = item.sanitized_name();
+        let file_path = item.mangled_name();
         let file_path = file_path.to_string_lossy();
 
         let mut new_path = path.to_owned();
         if let Some(index) = file_path.find('\\') {
-            new_path.push(file_path[index + 1..].to_owned());
+            new_path.push(&file_path[index + 1..]);
         }
 
         if item.is_dir() && !new_path.exists() {
-            create_dir_all(new_path.to_owned())
+            create_dir_all(&new_path)
                 .unwrap_or_else(|_| panic!("Could not create new folder: {:?}", new_path));
         }
 
@@ -52,7 +52,7 @@ pub fn extract_archive(bytes: Response, path: &Path) -> Result<()> {
         path.to_str()
             .unwrap()
             .strip_prefix("\\\\?\\")
-            .unwrap_or(path.to_str().unwrap())
+            .unwrap_or_else(|| path.to_str().unwrap())
     );
 
     Result::Ok(())
