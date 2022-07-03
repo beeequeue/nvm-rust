@@ -1,5 +1,5 @@
 use anyhow::Result;
-use clap::{AppSettings, Clap};
+use clap::{AppSettings, Parser};
 use node_semver::Range;
 
 use crate::{
@@ -9,7 +9,7 @@ use crate::{
     Config,
 };
 
-#[derive(Clap, Clone, Debug)]
+#[derive(Parser, Clone, Debug)]
 #[clap(
 about = "Uninstall a version",
 alias = "r",

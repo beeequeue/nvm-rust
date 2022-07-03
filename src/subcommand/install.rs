@@ -1,7 +1,7 @@
 use std::{borrow::Borrow, path::Path};
 
 use anyhow::{Context, Result};
-use clap::{AppSettings, Clap};
+use clap::{AppSettings, Parser};
 use node_semver::Range;
 
 use crate::{
@@ -11,7 +11,7 @@ use crate::{
     Config,
 };
 
-#[derive(Clap, Clone, Debug)]
+#[derive(Parser, Clone, Debug)]
 #[clap(
 about = "Install a new node version",
 alias = "i",

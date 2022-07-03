@@ -4,7 +4,7 @@ use std::{
 };
 
 use anyhow::Result;
-use clap::{AppSettings, Clap, ValueHint};
+use clap::{AppSettings, Parser, ValueHint};
 
 use crate::subcommand::{
     install::InstallCommand, list::ListCommand, parse_version::ParseVersionCommand,
@@ -15,7 +15,7 @@ mod archives;
 mod node_version;
 mod subcommand;
 
-#[derive(Clap, Clone, Debug)]
+#[derive(Parser, Clone, Debug)]
 enum Subcommands {
     List(ListCommand),
     Install(InstallCommand),
@@ -24,7 +24,7 @@ enum Subcommands {
     ParseVersion(ParseVersionCommand),
 }
 
-#[derive(Clap, Debug)]
+#[derive(Parser, Debug)]
 #[clap(
 name = "nvm(-rust)",
 about = "Node Version Manager (but better, and in Rust)",

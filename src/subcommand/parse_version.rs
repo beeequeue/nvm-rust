@@ -1,10 +1,10 @@
 use anyhow::Result;
-use clap::{AppSettings, Clap};
+use clap::{AppSettings, Parser};
 use node_semver::Range;
 
 use crate::{node_version::is_version_range, subcommand::Action, Config};
 
-#[derive(Clap, Clone, Debug)]
+#[derive(Parser, Clone, Debug)]
 #[clap(
 about = "Echo what a version string will be parsed to",
 alias = "pv",

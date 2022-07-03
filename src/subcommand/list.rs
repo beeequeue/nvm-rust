@@ -1,7 +1,7 @@
 use std::{collections::HashMap, ops::Deref};
 
 use anyhow::Result;
-use clap::{AppSettings, Clap};
+use clap::{AppSettings, Parser};
 use node_semver::Range;
 
 use crate::{
@@ -32,7 +32,7 @@ fn latest_version_string_from(status: &VersionStatus) -> String {
     }
 }
 
-#[derive(Clap, Clone, Debug)]
+#[derive(Parser, Clone, Debug)]
 #[clap(
 about = "List installed and released node versions",
 alias = "ls",
