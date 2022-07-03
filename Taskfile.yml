@@ -1,0 +1,46 @@
+version: 3
+
+tasks:
+  lint:
+    desc: Lint code
+    cmds:
+      - cargo clippy
+  lint:fix:
+    desc: Lint code
+    cmds:
+      - cargo clippy --fix --allow-staged --allow-dirty
+
+  format:
+    desc: Format code
+    cmds:
+      - cargo fmt --all
+
+  test:
+    desc: Run tests
+    sources:
+      - Cargo.*
+      - src/**
+      - test-data/**
+      - tests/**
+    cmds:
+      - cargo test
+
+  build:
+    desc: Build debug artifacts
+    sources:
+      - Cargo.*
+      - src/**
+    generates:
+      - target/debug/**
+    cmds:
+      - cargo build
+
+  build:release:
+    desc: Build release artifacts
+    sources:
+      - Cargo.*
+      - src/**
+    generates:
+      - target/release/**
+    cmds:
+      - cargo build --release --locked

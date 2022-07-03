@@ -27,9 +27,11 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-      - uses: actions/checkout@v3.0.2
+      - uses: actions/checkout@v3
 
-      - uses: actions-rs/toolchain@v1.0.7
+      - uses: arduino/setup-task@v1
+
+      - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
           toolchain: nightly
@@ -40,7 +42,7 @@ jobs:
         with:
           key: build
 
-      - run: cargo build --all-features --locked --release
+      - run: task build:release
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v3
@@ -58,9 +60,11 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-      - uses: actions/checkout@v3.0.2
+      - uses: actions/checkout@v3
 
-      - uses: actions-rs/toolchain@v1.0.7
+      - uses: arduino/setup-task@v1
+
+      - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
           toolchain: nightly
@@ -71,24 +75,25 @@ jobs:
         with:
           key: test
 
-      - run: cargo test --all-features -- --nocapture
+      - run: task test -- --nocapture
 
   clippy:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3.0.2
+      - uses: actions/checkout@v3
 
-      - uses: actions-rs/toolchain@v1.0.7
+      - uses: arduino/setup-task@v1
+
+      - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
           toolchain: nightly
           override: true
           components: rustfmt, clippy
 
-      - run: cargo fmt --all -- --check
+      - run: task format -- --check
 
       - uses: actions-rs/clippy-check@v1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          args: --all-features
