@@ -16,13 +16,10 @@ jobs:
         include:
           - os: macos-latest
             file-name: nvm-rust
-            display-name: nvm-rust-macos64.exe
           - os: ubuntu-latest
             file-name: nvm-rust
-            display-name: nvm-rust-linux64.exe
           - os: windows-latest
             file-name: nvm-rust.exe
-            display-name: nvm-rust-win64.exe
 
     runs-on: ${{ matrix.os }}
 
