@@ -1,5 +1,3 @@
-#![feature(let_chains)]
-
 use std::{
     fs::create_dir_all,
     path::{Path, PathBuf},
