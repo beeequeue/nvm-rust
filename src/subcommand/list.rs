@@ -43,9 +43,6 @@ pub struct ListCommand {
     /// Only display installed versions
     #[clap(short, long)]
     pub installed: bool,
-    /// Only display available versions
-    #[clap(short, long, takes_value(false))]
-    pub online: bool,
     /// Filter by semantic versions.
     ///
     /// `12`, `^10.9`, `>=8.10`, `>=8, <9`
