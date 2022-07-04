@@ -10,8 +10,29 @@ env:
   TERM: xterm-256color
 
 jobs:
+  create-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: nightly
+          default: true
+
+      - run: cargo publish
+
+      - uses: softprops/action-gh-release@v1
+        with:
+          draft: true
+
+
   build:
     name: build (${{ matrix.os }})
+
+    needs: [create-release]
 
     strategy:
       fail-fast: false
