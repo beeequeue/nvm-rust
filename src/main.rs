@@ -14,6 +14,7 @@ use crate::subcommand::{
 mod archives;
 mod node_version;
 mod subcommand;
+mod files;
 
 #[derive(Parser, Clone, Debug)]
 enum Subcommands {

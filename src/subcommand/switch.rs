@@ -13,7 +13,7 @@ use clap::{AppSettings, Parser};
 use node_semver::{Range, Version};
 
 use crate::{
-    node_version,
+    files, node_version,
     node_version::{InstalledNodeVersion, NodeVersion},
     subcommand::Action,
     Config,
@@ -29,13 +29,22 @@ setting = AppSettings::ColoredHelp
 pub struct SwitchCommand {
     /// A semver range. The latest version matching this range will be switched to.
     #[clap(validator = node_version::is_version_range)]
-    pub version: Range,
+    pub version: Option<Range>,
 }
 
 impl Action<SwitchCommand> for SwitchCommand {
     fn run(config: &Config, options: &SwitchCommand) -> Result<()> {
-        let version = InstalledNodeVersion::find_matching(config, &options.version);
+        let version_filter = options
+            .clone()
+            .version
+            .xor(files::get_version_file().map(|version_file| version_file.range()));
 
+        if version_filter.is_none() {
+            anyhow::bail!("You did not pass a version and we did not find any version files (package.json#engines, .nvmrc) in the current directory.");
+        }
+        let version_filter = version_filter.unwrap();
+
+        let version = InstalledNodeVersion::find_matching(config, &version_filter);
         if version.is_none() {
             anyhow::bail!("No version matching the version range was found.")
         }
