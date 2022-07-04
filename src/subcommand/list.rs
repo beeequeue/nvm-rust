@@ -2,6 +2,7 @@ use std::{collections::HashMap, ops::Deref};
 
 use anyhow::Result;
 use clap::{AppSettings, Parser};
+use itertools::Itertools;
 use node_semver::Range;
 
 use crate::{
@@ -61,6 +62,18 @@ impl Action<ListCommand> for ListCommand {
             installed_versions = node_version::filter_version_req(installed_versions, filter);
         }
 
+        if options.installed {
+            println!(
+                "{}",
+                installed_versions
+                    .iter()
+                    .map(|version| version.to_string())
+                    .join("\n")
+            );
+
+            return Ok(());
+        }
+
         let mut latest_per_major: HashMap<u64, &OnlineNodeVersion> = HashMap::new();
         let online_versions = OnlineNodeVersion::fetch_all()?;
         if !online_versions.is_empty() {
@@ -88,6 +101,6 @@ impl Action<ListCommand> for ListCommand {
             .collect();
 
         println!("{}", lines.join("\n"));
-        Result::Ok(())
+        Ok(())
     }
 }
