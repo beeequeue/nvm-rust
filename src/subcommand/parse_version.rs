@@ -1,22 +1,8 @@
 use anyhow::Result;
 use clap::{AppSettings, Parser};
 use node_semver::Range;
-use std::fmt;
 
-use crate::{files::package_json, node_version::is_version_range, subcommand::Action, Config};
-
-#[derive(Debug)]
-enum Source {
-    Input,
-    PackageJson,
-    Nvmrc,
-}
-
-impl fmt::Display for Source {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{:?}", self)
-    }
-}
+use crate::{files, node_version::is_version_range, subcommand::Action, Config};
 
 #[derive(Parser, Clone, Debug)]
 #[clap(
@@ -33,18 +19,13 @@ pub struct ParseVersionCommand {
 
 impl Action<ParseVersionCommand> for ParseVersionCommand {
     fn run(_: &Config, options: &ParseVersionCommand) -> Result<()> {
-        let mut source = Source::Input;
-        let mut version = options.version.clone();
+        let version = options.version.clone();
 
         if version.is_none() {
-            source = Source::PackageJson;
-            let data = package_json::from_current_dir();
+            if let Some(version_from_files) = files::get_version_file() {
+                println!("{}", version_from_files.range());
 
-            match data {
-                Some(data) if data.engines.is_some() => {
-                    version = Some(data.engines.unwrap().node.unwrap().to_string());
-                },
-                _ => (),
+                return Ok(());
             }
         }
 
@@ -56,7 +37,7 @@ impl Action<ParseVersionCommand> for ParseVersionCommand {
         match Range::parse(&version) {
             Ok(result) => {
                 println!(
-                    "from: {source}\n{:^pad$}\n{:^pad$}\n{}",
+                    "{:^pad$}\n{:^pad$}\n{}",
                     version,
                     "⬇",
                     result,
