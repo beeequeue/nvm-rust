@@ -4,16 +4,16 @@ Cross platform nvm that doesn't suck™
 
 ## Feature Comparison
 
-|                                                     |  **nvm-rust**   | [nvm-windows](https://github.com/coreybutler/nvm-windows) | [nvm](https://github.com/nvm-sh/nvm) |
-|----------------------------------------------------:|:---------------:|:---------------------------------------------------------:|:------------------------------------:|
-|                                           Platforms | Win, Mac, Linux |                          Windows                          |                POSIX                 |
-|                   [Range matching](#range-matching) |        ✅        |                             ❌                             |                  ✅                   |
-|                             [Version files](#nvmrc) |        ✅        |                             ❌                             |                  ✅                   |
-| [Default global packages](#default-global-packages) |       🔧        |                             ❌                             |                  ✅                   |
-|                                             Node <4 |       ✅*        |                             ✅                             |                  ✅                   |
-|                           Disabling nvm temporarily |        ❌        |                             ✅                             |                  ✅                   |
-|                                             Caching |        ❌        |                             ❌                             |                  ✅                   |
-|                                             Aliases |        ❌        |                             ❌                             |                  ✅                   |
+|                                                                        |  **nvm-rust**   | [nvm-windows](https://github.com/coreybutler/nvm-windows) | [nvm](https://github.com/nvm-sh/nvm) |
+|-----------------------------------------------------------------------:|:---------------:|:---------------------------------------------------------:|:------------------------------------:|
+|                                                              Platforms | Win, Mac, Linux |                          Windows                          |                POSIX                 |
+|                                      [Range matching](#range-matching) |        ✅        |                             ❌                             |                  ✅                   |
+| [Version files](#version-files-packagejsonengines-nvmrc-tool-versions) |        ✅        |                             ❌                             |                  ✅                   |
+|                    [Default global packages](#default-global-packages) |       🔧        |                             ❌                             |                  ✅                   |
+|                                                                Node <4 |       ✅*        |                             ✅                             |                  ✅                   |
+|                                              Disabling nvm temporarily |        ❌        |                             ✅                             |                  ✅                   |
+|                                                                Caching |        ❌        |                             ❌                             |                  ✅                   |
+|                                                                Aliases |        ❌        |                             ❌                             |                  ✅                   |
 
 
 
