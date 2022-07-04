@@ -31,6 +31,7 @@ impl Action<InstallCommand> for InstallCommand {
     fn run(config: &Config, options: &InstallCommand) -> Result<()> {
         let version_filter = options
             .version
+            .clone()
             .xor(files::get_version_file().map(|version_file| version_file.range()));
 
         if version_filter.is_none() {
@@ -73,7 +74,7 @@ impl Action<InstallCommand> for InstallCommand {
             SwitchCommand::run(
                 &config.with_force(),
                 &SwitchCommand {
-                    version: Range::parse(version_to_install.to_string())?,
+                    version: Some(Range::parse(version_to_install.to_string())?),
                 },
             )?;
         }

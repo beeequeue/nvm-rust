@@ -35,6 +35,7 @@ pub struct SwitchCommand {
 impl Action<SwitchCommand> for SwitchCommand {
     fn run(config: &Config, options: &SwitchCommand) -> Result<()> {
         let version_filter = options
+            .clone()
             .version
             .xor(files::get_version_file().map(|version_file| version_file.range()));
 
