@@ -4,18 +4,20 @@ Cross platform nvm that doesn't suck™
 
 ## Feature Comparison
 
-| | **nvm-rust** | [nvm-windows](https://github.com/coreybutler/nvm-windows) | [nvm](https://github.com/nvm-sh/nvm) |
-| ---: | :---: | :---: | :---: | 
-| Platforms | [Rust Platforms](https://doc.rust-lang.org/nightly/rustc/platform-support.html#tier-1) | Windows | POSIX |
-| [Range matching](#range-matching) | ✅ | ❌ | ✅ |
-| [.nvmrc](#nvmrc) | 🔧 | ❌ | ✅ |
-| [Default global packages](#default-global-packages) | 🔧 | ❌ | ✅ |
-| Node <4 | ✅* | ✅ | ✅ |
-| Disabling nvm temporarily | ❌ | ✅ | ✅ |
-| Caching | ❌ | ❌ | ✅ |
-| Aliases | ❌ | ❌ | ✅ |
+|                                                     |  **nvm-rust**   | [nvm-windows](https://github.com/coreybutler/nvm-windows) | [nvm](https://github.com/nvm-sh/nvm) |
+|----------------------------------------------------:|:---------------:|:---------------------------------------------------------:|:------------------------------------:|
+|                                           Platforms | Win, Mac, Linux |                          Windows                          |                POSIX                 |
+|                   [Range matching](#range-matching) |        ✅        |                             ❌                             |                  ✅                   |
+|                             [Version files](#nvmrc) |        ✅        |                             ❌                             |                  ✅                   |
+| [Default global packages](#default-global-packages) |       🔧        |                             ❌                             |                  ✅                   |
+|                                             Node <4 |       ✅*        |                             ✅                             |                  ✅                   |
+|                           Disabling nvm temporarily |        ❌        |                             ✅                             |                  ✅                   |
+|                                             Caching |        ❌        |                             ❌                             |                  ✅                   |
+|                                             Aliases |        ❌        |                             ❌                             |                  ✅                   |
 
-\*not supported, might work?
+
+
+**not supported, might work?
 
 ### Range Matching
 
@@ -27,6 +29,33 @@ For example:
 - `nvm install "12 <12.18"` will install the latest `12.17.x` version, instead of just giving you an error.
 - `nvm use 12` switch use the newest installed `12.x.x` version instead of `12.0.0` (and most likely giving you an error, who has that version installed?).
 
-### .nvmrc
+### Version files (`package.json#engines`, `.nvmrc`, `.tool-versions`)
+
+If a version is not specified for the `use` and `install` commands nvm-rust will look for and parse any files containing Node version specifications amd use that!
+
+nvm-rust handles files containing ranges, unlike [nvm](https://github.com/nvm-sh/nvm).
+
+e.g.
+
+```
+// package.json
+{
+  ...
+  "engines": {
+    "node": "^14.17"
+  }
+  ...
+}
+
+# Installs 14.19.3 as of the time of writing
+$ nvm install
+```
+
+The program will use the following file priority:
+
+1. `package.json#engines`
+2. `.nvmrc`
+3. `.node-version`
+4. [`.tool-versions` from `asdf`](https://asdf-vm.com/guide/getting-started.html#local)
 
 ### Default global packages
