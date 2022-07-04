@@ -41,8 +41,8 @@ setting = AppSettings::ColoredHelp
 )]
 pub struct ListCommand {
     /// Only display installed versions
-    #[clap(short, long)]
-    pub installed: bool,
+    #[clap(short, long, alias="installed")]
+    pub local: bool,
     /// Filter by semantic versions.
     ///
     /// `12`, `^10.9`, `>=8.10`, `>=8, <9`
@@ -59,7 +59,7 @@ impl Action<ListCommand> for ListCommand {
             installed_versions = node_version::filter_version_req(installed_versions, filter);
         }
 
-        if options.installed {
+        if options.local {
             println!(
                 "{}",
                 installed_versions
