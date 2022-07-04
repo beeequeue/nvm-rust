@@ -39,10 +39,17 @@ jobs:
           toolchain: nightly
           default: true
 
-      - name: Rust Cache
-        uses: Swatinem/rust-cache@v1
+      - uses: actions/cache@v3
         with:
-          key: build
+          path: |
+            ~/.cargo/bin
+            ~/.cargo/registry/index
+            ~/.cargo/registry/cache
+            ~/.cargo/git/db
+            ./target
+          key: ${{ runner.os }}-cargo-build-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-build-
 
       - run: task build:release
 
@@ -74,10 +81,17 @@ jobs:
           toolchain: nightly
           default: true
 
-      - name: Rust Cache
-        uses: Swatinem/rust-cache@v1
+      - uses: actions/cache@v3
         with:
-          key: test
+          path: |
+            ~/.cargo/bin
+            ~/.cargo/registry/index
+            ~/.cargo/registry/cache
+            ~/.cargo/git/db
+            ./target
+          key: ${{ runner.os }}-cargo-test-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-test-
 
       - run: task test -- --nocapture
 
