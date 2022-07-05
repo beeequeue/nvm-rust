@@ -1,5 +1,3 @@
-use std::{collections::HashMap, ops::Deref};
-
 use anyhow::Result;
 use clap::{AppSettings, Parser};
 use itertools::Itertools;
@@ -12,24 +10,39 @@ use crate::{
     Config,
 };
 
-enum VersionStatus {
-    Outdated(OnlineNodeVersion),
+enum VersionStatus<'p> {
     Latest,
-    Unknown,
+    NotInstalled,
+    Outdated(&'p OnlineNodeVersion),
 }
 
-fn emoji_from(status: &VersionStatus) -> char {
-    match status {
-        VersionStatus::Outdated(_) => '⏫',
-        _ => '✅',
+impl<'p> VersionStatus<'p> {
+    fn from<T: NodeVersion>(versions: &[&T], latest: &'p OnlineNodeVersion) -> VersionStatus<'p> {
+        if versions.is_empty() {
+            VersionStatus::NotInstalled
+        } else if versions
+            .iter()
+            .all(|version| version.version() < latest.version())
+        {
+            VersionStatus::Outdated(latest)
+        } else {
+            VersionStatus::Latest
+        }
     }
-}
 
-fn latest_version_string_from(status: &VersionStatus) -> String {
-    match status {
-        VersionStatus::Outdated(version) => format!("-> {}", version.to_string()),
-        VersionStatus::Latest => "".to_string(),
-        _ => "-> unknown".to_string(),
+    fn to_emoji(&self) -> char {
+        match self {
+            VersionStatus::Latest => '✅',
+            VersionStatus::NotInstalled => '〰',
+            VersionStatus::Outdated(_) => '⏫',
+        }
+    }
+
+    fn to_version_string(&self) -> String {
+        match self {
+            VersionStatus::Outdated(version) => format!("-> {}", version.to_string()),
+            _ => "".to_string(),
+        }
     }
 }
 
@@ -41,7 +54,7 @@ setting = AppSettings::ColoredHelp
 )]
 pub struct ListCommand {
     /// Only display installed versions
-    #[clap(short, long, alias="installed")]
+    #[clap(short, long, alias = "installed")]
     pub local: bool,
     /// Filter by semantic versions.
     ///
@@ -71,33 +84,59 @@ impl Action<ListCommand> for ListCommand {
             return Ok(());
         }
 
-        let mut latest_per_major: HashMap<u64, &OnlineNodeVersion> = HashMap::new();
+        // Get available versions, extract only the latest for each major version
+        let mut latest_per_major = Vec::<&OnlineNodeVersion>::new();
         let online_versions = OnlineNodeVersion::fetch_all()?;
         if !online_versions.is_empty() {
             latest_per_major = node_version::get_latest_of_each_major(&online_versions);
+            latest_per_major.sort();
+            latest_per_major.reverse();
         }
 
-        let lines: Vec<String> = installed_versions
+        let majors_and_installed_versions: Vec<(&OnlineNodeVersion, Vec<&InstalledNodeVersion>)> =
+            latest_per_major
+                .into_iter()
+                .map(|latest| {
+                    (
+                        latest,
+                        installed_versions
+                            .iter()
+                            .filter(|installed| installed.version().major == latest.version().major)
+                            .collect(),
+                    )
+                })
+                .collect();
+
+        // Show the latest X major versions by default
+        // and show any older, installed versions as well
+        let mut versions_to_show = Vec::<(&OnlineNodeVersion, &Vec<&InstalledNodeVersion>)>::new();
+        for (i, (latest, installed)) in majors_and_installed_versions.iter().enumerate() {
+            if i < 5 || !installed.is_empty() {
+                versions_to_show.push((latest, installed));
+            }
+        }
+
+        let output = versions_to_show
             .iter()
-            .map(|version| {
-                let version_status = match latest_per_major.get(&version.version().major) {
-                    Some(latest) if latest.version().gt(version.version()) => {
-                        VersionStatus::Outdated(latest.deref().clone())
-                    },
-                    Some(_) => VersionStatus::Latest,
-                    None => VersionStatus::Unknown,
+            .map(|(online_version, installed_versions)| {
+                let version_status = VersionStatus::from(installed_versions, online_version);
+
+                let version_to_show = if installed_versions.is_empty() {
+                    online_version.to_string()
+                } else {
+                    installed_versions[0].to_string()
                 };
 
                 format!(
                     "{} {} {}",
-                    emoji_from(&version_status),
-                    version.to_string(),
-                    latest_version_string_from(&version_status)
+                    &version_status.to_emoji(),
+                    version_to_show.to_string(),
+                    &version_status.to_version_string(),
                 )
             })
-            .collect();
+            .join("\n");
 
-        println!("{}", lines.join("\n"));
+        println!("{output}");
         Ok(())
     }
 }
