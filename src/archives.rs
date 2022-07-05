@@ -55,7 +55,7 @@ pub fn extract_archive(bytes: Response, path: &Path) -> Result<()> {
             .unwrap_or_else(|| path.to_str().unwrap())
     );
 
-    Result::Ok(())
+    Ok(())
 }
 
 #[cfg(unix)]
@@ -97,7 +97,7 @@ pub fn extract_archive(bytes: Response, path: &Path) -> Result<()> {
     if !errors.is_empty() {
         remove_dir_all(version_dir_path).expect("Couldn't clean up version.");
 
-        return Result::Err(anyhow::anyhow!(
+        return Err(anyhow::anyhow!(
             "Failed to extract all files:\n{:?}",
             errors
                 .into_iter()
@@ -109,5 +109,5 @@ pub fn extract_archive(bytes: Response, path: &Path) -> Result<()> {
 
     println!("Extracted to {:?}", version_dir_path);
 
-    Result::Ok(())
+    Ok(())
 }

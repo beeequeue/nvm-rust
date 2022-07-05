@@ -119,6 +119,6 @@ fn main() -> Result<()> {
         Subcommands::Use(ref options) => SwitchCommand::run(&config, options),
         Subcommands::ParseVersion(ref options) => ParseVersionCommand::run(&config, options),
         #[allow(unreachable_patterns)]
-        _ => Result::Ok(()),
+        _ => Ok(()),
     }
 }

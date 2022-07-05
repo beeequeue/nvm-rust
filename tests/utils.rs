@@ -32,7 +32,7 @@ pub fn setup_integration_test() -> Result<(TempDir, Command)> {
     let mut cmd = Command::cargo_bin("nvm").expect("Could not create Command");
     cmd.args(&["--dir", &temp_dir.to_string_lossy()]);
 
-    Result::Ok((temp_dir, cmd))
+    Ok((temp_dir, cmd))
 }
 
 pub fn install_mock_version(path: &Path, version_str: &str) -> Result<()> {
@@ -54,7 +54,7 @@ pub fn install_mock_version(path: &Path, version_str: &str) -> Result<()> {
             .unwrap_or_else(|err| panic!("Failed to write to {:#?}: {}", &file_path, err))
     }
 
-    Result::Ok(())
+    Ok(())
 }
 
 #[allow(dead_code)]
@@ -112,7 +112,7 @@ stderr output:
         )
     }
 
-    Result::Ok(())
+    Ok(())
 }
 
 #[allow(dead_code)]
@@ -141,7 +141,7 @@ pub fn assert_version_installed(
         }
     }
 
-    Result::Ok(())
+    Ok(())
 }
 
 #[allow(dead_code)]
@@ -149,11 +149,11 @@ pub fn get_selected_version(temp_dir: &TempDir) -> Option<String> {
     let symlink_path = temp_dir.child("shims");
 
     match fs::read_link(&symlink_path) {
-        Result::Ok(shims_dir) => {
+        Ok(shims_dir) => {
             let file_path = shims_dir.join(required_files()[0]);
 
             Some(fs::read_to_string(&file_path).unwrap())
         },
-        Result::Err(_) => None,
+        Err(_) => None,
     }
 }

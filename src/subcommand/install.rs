@@ -54,7 +54,7 @@ impl Action<InstallCommand> for InstallCommand {
                 version_to_install.version()
             );
 
-            return Result::Ok(());
+            return Ok(());
         }
 
         download_and_extract_to(
@@ -79,7 +79,7 @@ impl Action<InstallCommand> for InstallCommand {
             )?;
         }
 
-        Result::Ok(())
+        Ok(())
     }
 }
 

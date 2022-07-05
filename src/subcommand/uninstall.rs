@@ -38,7 +38,7 @@ impl Action<UninstallCommand> for UninstallCommand {
                     .with_prompt("Are you sure you want to uninstall it?")
                     .interact()?)
             {
-                return Result::Ok(());
+                return Ok(());
             }
 
             InstalledNodeVersion::deselect(config)?;

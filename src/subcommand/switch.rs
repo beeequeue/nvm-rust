@@ -56,7 +56,7 @@ impl Action<SwitchCommand> for SwitchCommand {
         }
 
         let result = set_shims(config, version.version());
-        if let Result::Ok(()) = result {
+        if let Ok(()) = result {
             println!("Switched to {}", version.to_string());
         }
 
@@ -69,16 +69,12 @@ fn set_shims(config: &Config, version: &Version) -> Result<()> {
     let shims_dir = config.get_shims_dir();
 
     if !InstalledNodeVersion::is_installed(config, version) {
-        anyhow::bail!("{} is not installed", version);
+        anyhow::bail!("{version} is not installed");
     }
 
     if read_link(&shims_dir).is_ok() {
-        if let Result::Err(err) = remove_dir(&shims_dir) {
-            anyhow::bail!(
-                "Could not remove old symlink at {:?}: {}",
-                shims_dir,
-                err.to_string()
-            );
+        if let Err(err) = remove_dir(&shims_dir) {
+            anyhow::bail!("Could not remove old symlink at {shims_dir:?}: {err}",);
         }
     }
 
