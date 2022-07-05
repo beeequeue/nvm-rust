@@ -1,5 +1,6 @@
 use std::{
     borrow::Borrow,
+    cmp::Ordering,
     collections::HashMap,
     fs::{read_link, remove_dir_all},
     path::PathBuf,
@@ -16,6 +17,26 @@ pub trait NodeVersion {
     fn version(&self) -> &Version;
 }
 
+impl PartialEq<Self> for dyn NodeVersion {
+    fn eq(&self, other: &Self) -> bool {
+        self.version().eq(other.version())
+    }
+}
+
+impl Eq for dyn NodeVersion {}
+
+impl PartialOrd<Self> for dyn NodeVersion {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.version().cmp(other.version()))
+    }
+}
+
+impl Ord for dyn NodeVersion {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.version().cmp(other.version())
+    }
+}
+
 pub fn is_version_range(value: &str) -> Result<Range> {
     Range::parse(value).context(value.to_string())
 }
@@ -27,8 +48,8 @@ pub fn filter_version_req<V: NodeVersion>(versions: Vec<V>, version_range: &Rang
         .collect()
 }
 
-pub fn get_latest_of_each_major<'p, V: NodeVersion>(versions: &'p [V]) -> HashMap<u64, &'p V> {
-    let mut map: HashMap<u64, &'p V> = HashMap::new();
+pub fn get_latest_of_each_major<V: NodeVersion>(versions: &[V]) -> Vec<&V> {
+    let mut map: HashMap<u64, &V> = HashMap::new();
 
     for version in versions.iter() {
         let entry = map.get_mut(&version.version().major);
@@ -39,7 +60,7 @@ pub fn get_latest_of_each_major<'p, V: NodeVersion>(versions: &'p [V]) -> HashMa
         map.insert(version.version().major, version);
     }
 
-    map
+    map.values().cloned().collect()
 }
 
 /// Handles `vX.X.X` prefixes
@@ -54,7 +75,7 @@ fn parse_version_str(version_str: &str) -> Result<Version> {
     Version::parse(clean_version).context(version_str.to_owned())
 }
 
-#[derive(Clone, Deserialize, Debug, Eq, PartialEq)]
+#[derive(Clone, Deserialize, Debug, Eq, PartialEq, Ord, PartialOrd)]
 #[serde(rename_all(deserialize = "snake_case"))]
 pub struct OnlineNodeVersion {
     #[serde()]
@@ -77,11 +98,7 @@ impl OnlineNodeVersion {
     pub fn get_download_url(&self) -> Result<Url> {
         let file_name = self.get_file();
 
-        let url = format!(
-            "https://nodejs.org/dist/v{}/{}",
-            self.version,
-            file_name
-        );
+        let url = format!("https://nodejs.org/dist/v{}/{}", self.version, file_name);
 
         Url::parse(&url).context(format!("Could not create a valid download url. [{}]", url))
     }
@@ -172,7 +189,7 @@ impl InstalledNodeVersion {
         remove_dir_all(self.get_dir_path(config))?;
 
         println!("Uninstalled {}!", self.version());
-        Result::Ok(())
+        Ok(())
     }
 
     /// Checks that all the required files are present in the installation dir
@@ -193,7 +210,7 @@ impl InstalledNodeVersion {
             );
         }
 
-        Result::Ok(())
+        Ok(())
     }
 
     // Static functions
@@ -218,7 +235,7 @@ impl InstalledNodeVersion {
             let entry = entry.unwrap();
             let result = parse_version_str(entry.file_name().to_string_lossy().as_ref());
 
-            if let Result::Ok(version) = result {
+            if let Ok(version) = result {
                 version_dirs.push(version);
             }
         }
@@ -264,9 +281,10 @@ impl NodeVersion for InstalledNodeVersion {
 #[cfg(test)]
 mod tests {
     mod online_version {
-        use crate::node_version::OnlineNodeVersion;
         use anyhow::Result;
         use node_semver::Version;
+
+        use crate::node_version::OnlineNodeVersion;
 
         #[test]
         fn can_parse_version_data() -> Result<()> {
@@ -342,7 +360,7 @@ mod tests {
 
             assert_eq!(expected, result);
 
-            Result::Ok(())
+            Ok(())
         }
     }
 }

@@ -1,5 +1,5 @@
 on:
-  workflow_dispatch: 
+  workflow_dispatch:
   push:
     tags:
       - v*
@@ -54,13 +54,13 @@ jobs:
       matrix:
         include:
           - os: macos-latest
-            file-name: nvm-rust
+            file-name: nvm
             display-name: nvm-macos
           - os: ubuntu-latest
-            file-name: nvm-rust
+            file-name: nvm
             display-name: nvm-linux
           - os: windows-latest
-            file-name: nvm-rust.exe
+            file-name: nvm.exe
             display-name: nvm-win.exe
 
     runs-on: ${{ matrix.os }}
