@@ -1,9 +1,11 @@
+#[cfg(windows)]
+use std::os::windows;
 use std::{
-    fs::create_dir_all,
+    fs,
     path::{Path, PathBuf},
 };
 
-use anyhow::Result;
+use anyhow::{bail, Result};
 use clap::{AppSettings, Parser, ValueHint};
 
 use crate::subcommand::{
@@ -12,9 +14,9 @@ use crate::subcommand::{
 };
 
 mod archives;
+mod files;
 mod node_version;
 mod subcommand;
-mod files;
 
 #[derive(Parser, Clone, Debug)]
 enum Subcommands {
@@ -95,7 +97,7 @@ impl Config {
 
 fn ensure_dir_exists(path: &Path) {
     if !path.exists() {
-        create_dir_all(path)
+        fs::create_dir_all(path)
             .unwrap_or_else(|err| panic!("Could not create {:?} - {}", path, err));
 
         println!("Created nvm dir at {:?}", path);
@@ -106,11 +108,42 @@ fn ensure_dir_exists(path: &Path) {
     }
 }
 
+#[cfg(windows)]
+const SYMLINK_ERROR: &str = "You do not seem to have permissions to create symlinks.
+This is most likely due to Windows requiring Admin access for it unless you enable Developer Mode.
+
+Either run the program as Administrator or enable Developer Mode:
+https://docs.microsoft.com/en-us/windows/apps/get-started/enable-your-device-for-development#active-developer-mode
+
+Read more:
+https://blogs.windows.com/windowsdeveloper/2016/12/02/symlinks-windows-10";
+
+#[cfg(windows)]
+fn ensure_symlinks_work(config: &Config) -> Result<()> {
+    let target_path = &config.get_dir().join("test");
+
+    if windows::fs::symlink_dir(&config.get_shims_dir(), target_path).is_err() {
+        bail!("{SYMLINK_ERROR}");
+    }
+
+    fs::remove_dir(target_path).expect("Could not remove test symlink...");
+
+    Ok(())
+}
+
 fn main() -> Result<()> {
     let config: Config = Config::parse();
+    #[cfg(windows)]
+    let is_initial_run = !config.get_dir().exists();
 
     ensure_dir_exists(&config.get_dir());
     ensure_dir_exists(&config.get_versions_dir());
+
+    #[cfg(windows)]
+    if is_initial_run {
+        let result = ensure_symlinks_work(&config);
+        result?;
+    }
 
     match config.command {
         Subcommands::List(ref options) => ListCommand::run(&config, options),

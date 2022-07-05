@@ -90,7 +90,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-cargo-test-
 
-      - run: task test -- --nocapture
+      - run: task test
 
   clippy:
     runs-on: ubuntu-latest
