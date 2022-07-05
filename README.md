@@ -10,6 +10,12 @@ Cross platform nvm that doesn't suck™
 2. Rename the file to `nvm` and place it somewhere in your `$PATH`
 3. Enjoy?
 
+### Cargo
+
+```shell
+cargo install nvm-rust
+```
+
 #### Note for Windows
 
 _It does not allow creating the symlinks this program uses without either Admin access or Developer Mode._
@@ -17,12 +23,6 @@ _It does not allow creating the symlinks this program uses without either Admin 
 _Either run the program as Administrator or [enable Developer Mode](https://docs.microsoft.com/en-us/windows/apps/get-started/enable-your-device-for-development#active-developer-mode)_
 
 _[Read more about it here](https://blogs.windows.com/windowsdeveloper/2016/12/02/symlinks-windows-10)_
-
-### Cargo
-
-```shell
-cargo install nvm-rust
-```
 
 ## Feature Comparison
 
