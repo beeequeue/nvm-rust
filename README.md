@@ -59,3 +59,22 @@ The program will use the following file priority:
 4. [`.tool-versions` from `asdf`](https://asdf-vm.com/guide/getting-started.html#local)
 
 ### Default global packages
+
+
+## Development
+
+This project uses [Task](https://taskfile.dev/installation) to execute various development commands.
+
+e.g. to run a command via a debug build, run:
+
+```shell
+task run -- install 12
+```
+
+To build a release artifact, run:
+
+```shell
+task build:release
+```
+
+You can find all the commands in the [Taskfile](./Taskfile.yml).

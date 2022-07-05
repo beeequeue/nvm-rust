@@ -4,7 +4,7 @@ tasks:
   lint:
     desc: Lint code
     cmds:
-      - cargo clippy
+      - cargo clippy {{.CLI_ARGS}}
   lint:fix:
     desc: Lint code and fix problems with autofixes
     cmds:
@@ -13,7 +13,7 @@ tasks:
   format:
     desc: Format code
     cmds:
-      - cargo fmt --all
+      - cargo fmt --all {{.CLI_ARGS}}
 
   test:
     desc: Run tests
@@ -23,12 +23,12 @@ tasks:
       - test-data/**
       - tests/**
     cmds:
-      - cargo test
+      - cargo test {{.CLI_ARGS}}
 
   run:
     desc: "Run the CLI with a debug build: task run -- <...args>"
     cmds:
-      - cargo run
+      - cargo run {{.CLI_ARGS}}
 
   build:
     desc: Build debug artifacts
@@ -38,7 +38,7 @@ tasks:
     generates:
       - target/debug/**
     cmds:
-      - cargo build
+      - cargo build {{.CLI_ARGS}}
 
   build:release:
     desc: Build release artifacts
@@ -48,4 +48,4 @@ tasks:
     generates:
       - target/release/**
     cmds:
-      - cargo build --release --locked
+      - cargo build --release --locked {{.CLI_ARGS}}
