@@ -1,7 +1,7 @@
+#[cfg(windows)]
+use std::os::windows;
 use std::{
     fs,
-    fs::create_dir_all,
-    os::windows,
     path::{Path, PathBuf},
 };
 
@@ -97,7 +97,8 @@ impl Config {
 
 fn ensure_dir_exists(path: &Path) {
     if !path.exists() {
-        create_dir_all(path).unwrap_or_else(|err| panic!("Could not create {:?} - {}", path, err));
+        fs::create_dir_all(path)
+            .unwrap_or_else(|err| panic!("Could not create {:?} - {}", path, err));
 
         println!("Created nvm dir at {:?}", path);
     }
