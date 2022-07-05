@@ -19,7 +19,7 @@ pub trait NodeVersion {
 
 impl PartialEq<Self> for dyn NodeVersion {
     fn eq(&self, other: &Self) -> bool {
-        todo!()
+        self.version().eq(other.version())
     }
 }
 
@@ -32,7 +32,7 @@ impl PartialOrd<Self> for dyn NodeVersion {
 }
 
 impl Ord for dyn NodeVersion {
-    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+    fn cmp(&self, other: &Self) -> Ordering {
         self.version().cmp(other.version())
     }
 }
@@ -48,7 +48,7 @@ pub fn filter_version_req<V: NodeVersion>(versions: Vec<V>, version_range: &Rang
         .collect()
 }
 
-pub fn get_latest_of_each_major<V: NodeVersion>(versions: &Vec<V>) -> Vec<&V> {
+pub fn get_latest_of_each_major<V: NodeVersion>(versions: &[V]) -> Vec<&V> {
     let mut map: HashMap<u64, &V> = HashMap::new();
 
     for version in versions.iter() {
@@ -189,7 +189,7 @@ impl InstalledNodeVersion {
         remove_dir_all(self.get_dir_path(config))?;
 
         println!("Uninstalled {}!", self.version());
-        Result::Ok(())
+        Ok(())
     }
 
     /// Checks that all the required files are present in the installation dir
@@ -210,7 +210,7 @@ impl InstalledNodeVersion {
             );
         }
 
-        Result::Ok(())
+        Ok(())
     }
 
     // Static functions
@@ -235,7 +235,7 @@ impl InstalledNodeVersion {
             let entry = entry.unwrap();
             let result = parse_version_str(entry.file_name().to_string_lossy().as_ref());
 
-            if let Result::Ok(version) = result {
+            if let Ok(version) = result {
                 version_dirs.push(version);
             }
         }
@@ -280,7 +280,7 @@ impl NodeVersion for InstalledNodeVersion {
 
 #[cfg(test)]
 mod tests {
-     mod online_version {
+    mod online_version {
         use anyhow::Result;
         use node_semver::Version;
 
@@ -360,7 +360,7 @@ mod tests {
 
             assert_eq!(expected, result);
 
-            Result::Ok(())
+            Ok(())
         }
     }
 }

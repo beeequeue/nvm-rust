@@ -130,7 +130,7 @@ impl Action<ListCommand> for ListCommand {
                 format!(
                     "{} {} {}",
                     &version_status.to_emoji(),
-                    version_to_show.to_string(),
+                    version_to_show,
                     &version_status.to_version_string(),
                 )
             })
