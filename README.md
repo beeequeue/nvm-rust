@@ -2,6 +2,28 @@
 
 Cross platform nvm that doesn't suck™
 
+## Installation
+
+### Binaries
+
+1. Download binary for your OS from the [Releases](https://github.com/BeeeQueue/nvm-rust/releases)
+2. Rename the file to `nvm` and place it somewhere in your `$PATH`
+3. Enjoy?
+
+#### Note for Windows
+
+_It does not allow creating the symlinks this program uses without either Admin access or Developer Mode._
+
+_Either run the program as Administrator or [enable Developer Mode](https://docs.microsoft.com/en-us/windows/apps/get-started/enable-your-device-for-development#active-developer-mode)_
+
+_[Read more about it here](https://blogs.windows.com/windowsdeveloper/2016/12/02/symlinks-windows-10)_
+
+### Cargo
+
+```shell
+cargo install nvm-rust
+```
+
 ## Feature Comparison
 
 |                                                                        |  **nvm-rust**   | [nvm-windows](https://github.com/coreybutler/nvm-windows) | [nvm](https://github.com/nvm-sh/nvm) |
@@ -14,8 +36,6 @@ Cross platform nvm that doesn't suck™
 |                                              Disabling nvm temporarily |        ❌        |                             ✅                             |                  ✅                   |
 |                                                                Caching |        ❌        |                             ❌                             |                  ✅                   |
 |                                                                Aliases |        ❌        |                             ❌                             |                  ✅                   |
-
-
 
 **not supported, might work?
 
