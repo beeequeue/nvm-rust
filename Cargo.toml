@@ -1,6 +1,6 @@
 [package]
 name = "nvm-rust"
-version = "0.3.0"
+version = "0.3.1"
 description = "A node version manager that doesn't suck"
 authors = ["BeeeQueue <adam@haglund.dev>"]
 repository = "https://github.com/BeeeQueue/nvm-rust"
