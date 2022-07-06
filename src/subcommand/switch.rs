@@ -37,7 +37,7 @@ impl Action<SwitchCommand> for SwitchCommand {
         let version_filter = options
             .clone()
             .version
-            .xor(files::get_version_file().map(|version_file| version_file.range()));
+            .or_else(|| files::get_version_file().map(|version_file| version_file.range()));
 
         if version_filter.is_none() {
             anyhow::bail!("You did not pass a version and we did not find any version files (package.json#engines, .nvmrc) in the current directory.");
