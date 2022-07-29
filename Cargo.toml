@@ -26,7 +26,7 @@ path = "src/main.rs"
 [dependencies]
 anyhow = "1.0.58"
 clap = { version = "3.2.15", features = ["derive", "env", "cargo"] }
-dialoguer = "0.10.1"
+dialoguer = "0.10.2"
 dirs = "4.0.0"
 itertools = "0.10.3"
 node-semver = "2.0.0"
