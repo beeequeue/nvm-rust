@@ -28,7 +28,7 @@ anyhow = "1.0.65"
 clap = { version = "3.2.21", features = ["derive", "env", "cargo"] }
 dialoguer = "0.10.2"
 dirs = "4.0.0"
-itertools = "0.10.3"
+itertools = "0.10.4"
 node-semver = "2.0.1"
 reqwest = { version = "0.11.11", features = ["blocking"] }
 serde = { version = "1.0.144", features = ["derive"] }
