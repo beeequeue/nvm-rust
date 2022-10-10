@@ -32,7 +32,7 @@ itertools = "0.10.5"
 node-semver = "2.1.0"
 reqwest = { version = "0.11.12", features = ["blocking"] }
 serde = { version = "1.0.145", features = ["derive"] }
-serde_json = "1.0.85"
+serde_json = "1.0.86"
 
 [target.'cfg(unix)'.dependencies]
 flate2 = "1.0.24"
