@@ -2,9 +2,9 @@ use anyhow::Result;
 
 use crate::Config;
 
-pub mod list;
-pub mod is_installed;
 pub mod install;
+pub mod is_installed;
+pub mod list;
 pub mod parse_version;
 pub mod switch;
 pub mod uninstall;
