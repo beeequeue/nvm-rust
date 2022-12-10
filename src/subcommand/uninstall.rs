@@ -10,7 +10,12 @@ use crate::{
 };
 
 #[derive(Parser, Clone, Debug)]
-#[command(about = "Uninstall a version", alias = "r", alias = "remove")]
+#[command(
+    about = "Uninstall a version",
+    alias = "r",
+    alias = "rm",
+    alias = "remove"
+)]
 pub struct UninstallCommand {
     /// A semver range. The latest version matching this range will be installed
     #[clap(validator = node_version::is_version_range)]
