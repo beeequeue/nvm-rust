@@ -9,8 +9,8 @@ use anyhow::{bail, Result};
 use clap::{Parser, ValueHint};
 
 use crate::subcommand::{
-    install::InstallCommand, list::ListCommand, parse_version::ParseVersionCommand,
-    switch::SwitchCommand, uninstall::UninstallCommand, Action,
+    install::InstallCommand, is_installed::IsInstalledCommand, list::ListCommand,
+    parse_version::ParseVersionCommand, switch::SwitchCommand, uninstall::UninstallCommand, Action,
 };
 
 mod archives;
@@ -21,6 +21,7 @@ mod subcommand;
 #[derive(Parser, Clone, Debug)]
 enum Subcommands {
     List(ListCommand),
+    IsInstalled(IsInstalledCommand),
     Install(InstallCommand),
     Uninstall(UninstallCommand),
     Use(SwitchCommand),
@@ -143,6 +144,7 @@ fn main() -> Result<()> {
 
     match config.command {
         Subcommands::List(ref options) => ListCommand::run(&config, options),
+        Subcommands::IsInstalled(ref options) => IsInstalledCommand::run(&config, options),
         Subcommands::Install(ref options) => InstallCommand::run(&config, options),
         Subcommands::Uninstall(ref options) => UninstallCommand::run(&config, options),
         Subcommands::Use(ref options) => SwitchCommand::run(&config, options),
