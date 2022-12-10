@@ -8,7 +8,6 @@ use std::{
 
 use anyhow::{Context, Result};
 use node_semver::{Range, Version};
-use reqwest::Url;
 use serde::Deserialize;
 
 use crate::{utils, Config};
@@ -88,23 +87,21 @@ pub struct OnlineNodeVersion {
 
 impl OnlineNodeVersion {
     pub fn fetch_all() -> Result<Vec<Self>> {
-        let response = reqwest::blocking::get("https://nodejs.org/dist/index.json")?;
+        let response = ureq::get("https://nodejs.org/dist/index.json").call()?;
 
-        let body = response.text().unwrap();
-
-        serde_json::from_str(&body).context("Failed to parse versions list from nodejs.org")
+        response
+            .into_json()
+            .context("Failed to parse versions list from nodejs.org")
     }
 
     pub fn install_path(&self, config: &Config) -> PathBuf {
         config.get_versions_dir().join(self.to_string())
     }
 
-    pub fn download_url(&self) -> Result<Url> {
+    pub fn download_url(&self) -> String {
         let file_name = self.file();
 
-        let url = format!("https://nodejs.org/dist/v{}/{}", self.version, file_name);
-
-        Url::parse(&url).context(format!("Could not create a valid download url. [{url}]"))
+        format!("https://nodejs.org/dist/v{}/{}", self.version, file_name)
     }
 
     #[cfg(target_os = "windows")]

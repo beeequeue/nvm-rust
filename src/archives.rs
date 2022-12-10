@@ -11,15 +11,14 @@ use std::{fs::create_dir_all, io::Cursor, path::Path};
 use anyhow::Result;
 #[cfg(unix)]
 use flate2::read::GzDecoder;
-use reqwest::blocking::Response;
 #[cfg(unix)]
 use tar::{Archive, Unpacked};
 #[cfg(target_os = "windows")]
 use zip::ZipArchive;
 
 #[cfg(target_os = "windows")]
-pub fn extract_archive(bytes: Response, path: &Path) -> Result<()> {
-    let reader = Cursor::new(bytes.bytes().unwrap());
+pub fn extract_archive(bytes: Vec<u8>, path: &Path) -> Result<()> {
+    let reader = Cursor::new(bytes);
     let mut archive = ZipArchive::new(reader).unwrap();
 
     println!("Extracting...");

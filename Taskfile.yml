@@ -5,10 +5,12 @@ tasks:
     desc: Lint code
     cmds:
       - cargo clippy {{.CLI_ARGS}}
+      - cargo fmt --check --all
   lint:fix:
     desc: Lint code and fix problems with autofixes
     cmds:
       - cargo clippy --fix --allow-staged --allow-dirty
+      - task: format
 
   format:
     desc: Format code
