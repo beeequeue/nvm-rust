@@ -20,10 +20,10 @@ pub struct IsInstalledCommand {
     #[arg(value_parser = parse_range)]
     pub version: Option<Range>,
     /// Which exit code to use when a version is not installed.
-    #[arg(short = 'e', default_value = "1")]
+    #[arg(long, short = 'e', default_value = "1")]
     pub exit_code: i32,
     /// Silence output.
-    #[arg(short = 'q')]
+    #[arg(long, short = 'q')]
     pub quiet: bool,
 }
 
