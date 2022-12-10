@@ -37,7 +37,7 @@ impl Ord for dyn NodeVersion {
     }
 }
 
-pub fn is_version_range(value: &str) -> Result<Range> {
+pub fn parse_range(value: &str) -> Result<Range> {
     Range::parse(value).context(value.to_string())
 }
 
@@ -100,7 +100,7 @@ impl OnlineNodeVersion {
 
         let url = format!("https://nodejs.org/dist/v{}/{}", self.version, file_name);
 
-        Url::parse(&url).context(format!("Could not create a valid download url. [{}]", url))
+        Url::parse(&url).context(format!("Could not create a valid download url. [{url}]"))
     }
 
     #[cfg(target_os = "windows")]
@@ -196,7 +196,7 @@ impl InstalledNodeVersion {
     #[allow(dead_code)]
     pub fn validate(&self, config: &Config) -> Result<()> {
         let version_dir =
-            read_link(&config.get_shims_dir()).expect("Could not read installation dir");
+            read_link(config.get_shims_dir()).expect("Could not read installation dir");
 
         let mut required_files = vec![version_dir; 2];
         required_files[0].set_file_name(format!("node{}", Self::exec_ext()));
@@ -228,7 +228,7 @@ impl InstalledNodeVersion {
             .expect("Failed to read nvm dir")
         {
             if entry.is_err() {
-                println!("Could not read {:?}", entry);
+                println!("Could not read {entry:?}");
                 continue;
             }
 

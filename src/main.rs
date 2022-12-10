@@ -6,7 +6,7 @@ use std::{
 };
 
 use anyhow::{bail, Result};
-use clap::{AppSettings, Parser, ValueHint};
+use clap::{Parser, ValueHint};
 
 use crate::subcommand::{
     install::InstallCommand, list::ListCommand, parse_version::ParseVersionCommand,
@@ -28,10 +28,11 @@ enum Subcommands {
 }
 
 #[derive(Parser, Debug)]
-#[clap(
-name = "nvm(-rust)",
-about = "Node Version Manager (but better, and in Rust)",
-setting = AppSettings::ColoredHelp
+#[command(
+    name = "nvm(-rust)",
+    author,
+    about,
+    about = "Node Version Manager (but better, and in Rust)"
 )]
 pub struct Config {
     /// Installation directory
@@ -45,9 +46,6 @@ pub struct Config {
         env("NVM_SHIMS_DIR")
     )]
     shims_dir: Option<PathBuf>,
-    /// Level of verbosity, can be used multiple times
-    #[clap(global(true), hidden(true), short, long, parse(from_occurrences))]
-    verbose: i32,
     /// Accept any prompts needed for the command to complete
     #[clap(global(true), short, long)]
     force: bool,
@@ -77,7 +75,6 @@ impl Config {
     fn with_force(&self) -> Self {
         Self {
             force: true,
-            verbose: self.verbose,
             dir: Some(self.get_dir()),
             shims_dir: Some(self.get_shims_dir()),
             command: self.command.clone(),
@@ -97,14 +94,13 @@ impl Config {
 
 fn ensure_dir_exists(path: &Path) {
     if !path.exists() {
-        fs::create_dir_all(path)
-            .unwrap_or_else(|err| panic!("Could not create {:?} - {}", path, err));
+        fs::create_dir_all(path).unwrap_or_else(|err| panic!("Could not create {path:?} - {err}"));
 
-        println!("Created nvm dir at {:?}", path);
+        println!("Created nvm dir at {path:?}");
     }
 
     if !path.is_dir() {
-        panic!("{:?} is not a directory! Please rename it.", path)
+        panic!("{path:?} is not a directory! Please rename it.")
     }
 }
 
@@ -122,7 +118,7 @@ https://blogs.windows.com/windowsdeveloper/2016/12/02/symlinks-windows-10";
 fn ensure_symlinks_work(config: &Config) -> Result<()> {
     let target_path = &config.get_dir().join("test");
 
-    if windows::fs::symlink_dir(&config.get_shims_dir(), target_path).is_err() {
+    if windows::fs::symlink_dir(config.get_shims_dir(), target_path).is_err() {
         bail!("{SYMLINK_ERROR}");
     }
 
@@ -154,4 +150,11 @@ fn main() -> Result<()> {
         #[allow(unreachable_patterns)]
         _ => Ok(()),
     }
+}
+
+#[test]
+fn verify_cli() {
+    use clap::CommandFactory;
+
+    Config::command().debug_assert()
 }

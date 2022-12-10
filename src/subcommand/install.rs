@@ -1,29 +1,26 @@
 use std::{borrow::Borrow, path::Path};
 
 use anyhow::{Context, Result};
-use clap::{AppSettings, Parser};
+use clap::Parser;
 use node_semver::Range;
 
 use crate::{
-    archives, files, node_version,
-    node_version::{InstalledNodeVersion, NodeVersion, OnlineNodeVersion},
+    archives, files,
+    node_version::{
+        filter_version_req, parse_range, InstalledNodeVersion, NodeVersion, OnlineNodeVersion,
+    },
     subcommand::{switch::SwitchCommand, Action},
     Config,
 };
 
 #[derive(Parser, Clone, Debug)]
-#[clap(
-about = "Install a new node version",
-alias = "i",
-alias = "add",
-setting = AppSettings::ColoredHelp
-)]
+#[command(about = "Install a new node version", alias = "i", alias = "add")]
 pub struct InstallCommand {
     /// A semver range. The latest version matching this range will be installed
-    #[clap(validator = node_version::is_version_range)]
+    #[arg(value_parser = parse_range)]
     pub version: Option<Range>,
     /// Switch to the new version after installing it
-    #[clap(long, short, default_value("false"))]
+    #[arg(long, short, default_value("false"))]
     pub switch: bool,
 }
 
@@ -40,7 +37,7 @@ impl Action<InstallCommand> for InstallCommand {
         let version_filter = version_filter.unwrap();
 
         let online_versions = OnlineNodeVersion::fetch_all()?;
-        let filtered_versions = node_version::filter_version_req(online_versions, &version_filter);
+        let filtered_versions = filter_version_req(online_versions, &version_filter);
 
         let version_to_install = filtered_versions.first().context(format!(
             "Did not find a version matching `{}`!",
@@ -86,7 +83,7 @@ impl Action<InstallCommand> for InstallCommand {
 fn download_and_extract_to(version: &OnlineNodeVersion, path: &Path) -> Result<()> {
     let url = version.get_download_url().unwrap();
 
-    println!("Downloading from {}...", url);
+    println!("Downloading from {url}...");
     let response = reqwest::blocking::get(url)
         .context(format!("Failed to download version: {}", version.version()))?;
 
