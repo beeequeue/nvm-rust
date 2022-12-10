@@ -37,10 +37,16 @@ enum Subcommands {
 )]
 pub struct Config {
     /// Installation directory
-    #[clap(global(true), long, value_hint(ValueHint::DirPath), env("NVM_DIR"))]
+    #[arg(
+        id("install-dir"),
+        global(true),
+        long,
+        value_hint(ValueHint::DirPath),
+        env("NVM_DIR")
+    )]
     dir: Option<PathBuf>,
     /// bin directory
-    #[clap(
+    #[arg(
         global(true),
         long,
         value_hint(ValueHint::DirPath),
@@ -48,10 +54,10 @@ pub struct Config {
     )]
     shims_dir: Option<PathBuf>,
     /// Accept any prompts needed for the command to complete
-    #[clap(global(true), short, long)]
+    #[arg(global(true), short, long)]
     force: bool,
 
-    #[clap(subcommand)]
+    #[command(subcommand)]
     command: Subcommands,
 }
 

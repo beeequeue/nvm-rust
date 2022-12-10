@@ -30,7 +30,7 @@ pub fn setup_integration_test() -> Result<(TempDir, Command)> {
     let temp_dir = integration_dir();
 
     let mut cmd = Command::cargo_bin("nvm").expect("Could not create Command");
-    cmd.args(["--dir", &temp_dir.to_string_lossy()]);
+    cmd.args(["--install-dir", &temp_dir.to_string_lossy()]);
 
     Ok((temp_dir, cmd))
 }
