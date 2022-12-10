@@ -34,6 +34,7 @@ enum Subcommands {
     name = "nvm(-rust)",
     author,
     about,
+    version,
     about = "Node Version Manager (but better, and in Rust)"
 )]
 pub struct Config {
