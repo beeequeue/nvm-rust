@@ -57,8 +57,8 @@ pub fn extract_archive(bytes: Vec<u8>, path: &Path) -> Result<()> {
 }
 
 #[cfg(unix)]
-pub fn extract_archive(bytes: Response, path: &Path) -> Result<()> {
-    let reader = Cursor::new(bytes.bytes().unwrap());
+pub fn extract_archive(bytes: Vec<u8>, path: &Path) -> Result<()> {
+    let reader = Cursor::new(bytes);
     let tar = GzDecoder::new(reader);
     let mut archive = Archive::new(tar);
 
