@@ -8,10 +8,9 @@ use std::{
 
 use anyhow::{Context, Result};
 use node_semver::{Range, Version};
-use reqwest::Url;
 use serde::Deserialize;
 
-use crate::Config;
+use crate::{utils, Config};
 
 pub trait NodeVersion {
     fn version(&self) -> &Version;
@@ -88,23 +87,25 @@ pub struct OnlineNodeVersion {
 
 impl OnlineNodeVersion {
     pub fn fetch_all() -> Result<Vec<Self>> {
-        let response = reqwest::blocking::get("https://nodejs.org/dist/index.json")?;
+        let response = ureq::get("https://nodejs.org/dist/index.json").call()?;
 
-        let body = response.text().unwrap();
-
-        serde_json::from_str(&body).context("Failed to parse versions list from nodejs.org")
+        response
+            .into_json()
+            .context("Failed to parse versions list from nodejs.org")
     }
 
-    pub fn get_download_url(&self) -> Result<Url> {
-        let file_name = self.get_file();
+    pub fn install_path(&self, config: &Config) -> PathBuf {
+        config.get_versions_dir().join(self.to_string())
+    }
 
-        let url = format!("https://nodejs.org/dist/v{}/{}", self.version, file_name);
+    pub fn download_url(&self) -> String {
+        let file_name = self.file();
 
-        Url::parse(&url).context(format!("Could not create a valid download url. [{url}]"))
+        format!("https://nodejs.org/dist/v{}/{}", self.version, file_name)
     }
 
     #[cfg(target_os = "windows")]
-    fn get_file(&self) -> String {
+    fn file(&self) -> String {
         format!(
             "node-v{version}-win-{arch}.zip",
             version = self.version(),
@@ -117,7 +118,7 @@ impl OnlineNodeVersion {
     }
 
     #[cfg(target_os = "macos")]
-    fn get_file(&self) -> String {
+    fn file(&self) -> String {
         format!(
             "node-v{version}-darwin-x64.tar.gz",
             version = self.version()
@@ -125,7 +126,7 @@ impl OnlineNodeVersion {
     }
 
     #[cfg(target_os = "linux")]
-    fn get_file(&self) -> String {
+    fn file(&self) -> String {
         format!("node-v{version}-linux-x64.tar.gz", version = self.version())
     }
 }
@@ -174,15 +175,6 @@ impl InstalledNodeVersion {
             .contains(&self.version().to_string())
     }
 
-    #[allow(dead_code)]
-    fn exec_ext() -> &'static str {
-        if cfg!(windows) {
-            ".cmd"
-        } else {
-            ""
-        }
-    }
-
     // Functions
 
     pub fn uninstall(self, config: &Config) -> Result<()> {
@@ -199,8 +191,8 @@ impl InstalledNodeVersion {
             read_link(config.get_shims_dir()).expect("Could not read installation dir");
 
         let mut required_files = vec![version_dir; 2];
-        required_files[0].set_file_name(format!("node{}", Self::exec_ext()));
-        required_files[1].set_file_name(format!("npm{}", Self::exec_ext()));
+        required_files[0].set_file_name(format!("node{}", utils::exec_ext()));
+        required_files[1].set_file_name(format!("npm{}", utils::exec_ext()));
 
         if let Some(missing_file) = required_files.iter().find(|file| !file.exists()) {
             anyhow::bail!(

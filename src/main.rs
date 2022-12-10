@@ -9,18 +9,20 @@ use anyhow::{bail, Result};
 use clap::{Parser, ValueHint};
 
 use crate::subcommand::{
-    install::InstallCommand, list::ListCommand, parse_version::ParseVersionCommand,
-    switch::SwitchCommand, uninstall::UninstallCommand, Action,
+    install::InstallCommand, is_installed::IsInstalledCommand, list::ListCommand,
+    parse_version::ParseVersionCommand, switch::SwitchCommand, uninstall::UninstallCommand, Action,
 };
 
 mod archives;
 mod files;
 mod node_version;
 mod subcommand;
+mod utils;
 
 #[derive(Parser, Clone, Debug)]
 enum Subcommands {
     List(ListCommand),
+    IsInstalled(IsInstalledCommand),
     Install(InstallCommand),
     Uninstall(UninstallCommand),
     Use(SwitchCommand),
@@ -36,10 +38,16 @@ enum Subcommands {
 )]
 pub struct Config {
     /// Installation directory
-    #[clap(global(true), long, value_hint(ValueHint::DirPath), env("NVM_DIR"))]
+    #[arg(
+        id("install-dir"),
+        global(true),
+        long,
+        value_hint(ValueHint::DirPath),
+        env("NVM_DIR")
+    )]
     dir: Option<PathBuf>,
     /// bin directory
-    #[clap(
+    #[arg(
         global(true),
         long,
         value_hint(ValueHint::DirPath),
@@ -47,10 +55,10 @@ pub struct Config {
     )]
     shims_dir: Option<PathBuf>,
     /// Accept any prompts needed for the command to complete
-    #[clap(global(true), short, long)]
+    #[arg(global(true), short, long)]
     force: bool,
 
-    #[clap(subcommand)]
+    #[command(subcommand)]
     command: Subcommands,
 }
 
@@ -143,6 +151,7 @@ fn main() -> Result<()> {
 
     match config.command {
         Subcommands::List(ref options) => ListCommand::run(&config, options),
+        Subcommands::IsInstalled(ref options) => IsInstalledCommand::run(&config, options),
         Subcommands::Install(ref options) => InstallCommand::run(&config, options),
         Subcommands::Uninstall(ref options) => UninstallCommand::run(&config, options),
         Subcommands::Use(ref options) => SwitchCommand::run(&config, options),

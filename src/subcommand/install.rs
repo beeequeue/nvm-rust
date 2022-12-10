@@ -1,8 +1,9 @@
-use std::{borrow::Borrow, path::Path};
+use std::{borrow::Borrow, path::Path, time::Duration};
 
 use anyhow::{Context, Result};
 use clap::Parser;
 use node_semver::Range;
+use ureq;
 
 use crate::{
     archives, files,
@@ -10,7 +11,7 @@ use crate::{
         filter_version_req, parse_range, InstalledNodeVersion, NodeVersion, OnlineNodeVersion,
     },
     subcommand::{switch::SwitchCommand, Action},
-    Config,
+    utils, Config,
 };
 
 #[derive(Parser, Clone, Debug)]
@@ -22,6 +23,9 @@ pub struct InstallCommand {
     /// Switch to the new version after installing it
     #[arg(long, short, default_value("false"))]
     pub switch: bool,
+    /// Enable corepack after installing the new version
+    #[arg(long, default_value("true"), hide(true), env("NVM_ENABLE_COREPACK"))]
+    pub enable_corepack: bool,
 }
 
 impl Action<InstallCommand> for InstallCommand {
@@ -54,12 +58,8 @@ impl Action<InstallCommand> for InstallCommand {
             return Ok(());
         }
 
-        download_and_extract_to(
-            version_to_install.borrow(),
-            &config
-                .get_versions_dir()
-                .join(version_to_install.to_string()),
-        )?;
+        let install_path = version_to_install.install_path(config);
+        download_and_extract_to(version_to_install.borrow(), &install_path)?;
 
         if config.force
             || (options.switch
@@ -76,16 +76,38 @@ impl Action<InstallCommand> for InstallCommand {
             )?;
         }
 
+        if options.enable_corepack {
+            if let Err(e) = std::process::Command::new(
+                install_path.join(format!("corepack{}", utils::exec_ext())),
+            )
+            .arg("enable")
+            .output()
+            {
+                println!("⚠️ Failed to automatically enable corepack!\n{e}",)
+            }
+        }
+
         Ok(())
     }
 }
 
 fn download_and_extract_to(version: &OnlineNodeVersion, path: &Path) -> Result<()> {
-    let url = version.get_download_url().unwrap();
+    let url = version.download_url();
+    let agent = ureq::AgentBuilder::new()
+        .timeout_connect(Duration::from_secs(30))
+        .timeout_read(Duration::from_secs(120))
+        .timeout_write(Duration::from_secs(120))
+        .build();
 
     println!("Downloading from {url}...");
-    let response = reqwest::blocking::get(url)
+    let response = agent
+        .get(&url)
+        .call()
         .context(format!("Failed to download version: {}", version.version()))?;
 
-    archives::extract_archive(response, path)
+    let length: usize = response.header("Content-Length").unwrap().parse()?;
+    let mut bytes: Vec<u8> = Vec::with_capacity(length);
+    response.into_reader().read_to_end(&mut bytes)?;
+
+    archives::extract_archive(bytes, path)
 }
