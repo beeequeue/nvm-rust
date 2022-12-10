@@ -41,8 +41,7 @@ pub fn extract_archive(bytes: Response, path: &Path) -> Result<()> {
 
         if item.is_file() {
             let mut file = File::create(&*new_path)?;
-            copy(&mut item, &mut file)
-                .unwrap_or_else(|_| panic!("Couldn't write to {new_path:?}"));
+            copy(&mut item, &mut file).unwrap_or_else(|_| panic!("Couldn't write to {new_path:?}"));
         }
     }
 

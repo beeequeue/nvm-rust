@@ -8,7 +8,7 @@ use crate::{files, node_version::parse_range, subcommand::Action, Config};
 #[command(
     about = "Echo what a version string will be parsed to",
     alias = "pv",
-    hide(true),
+    hide(true)
 )]
 pub struct ParseVersionCommand {
     /// The semver range to echo the parsed result of

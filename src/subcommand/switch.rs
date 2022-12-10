@@ -20,10 +20,7 @@ use crate::{
 };
 
 #[derive(Parser, Clone, Debug)]
-#[command(
-    about = "Switch to an installed node version",
-    alias = "switch",
-)]
+#[command(about = "Switch to an installed node version", alias = "switch")]
 pub struct SwitchCommand {
     /// A semver range. The latest version matching this range will be switched to.
     #[arg(value_parser = parse_range)]

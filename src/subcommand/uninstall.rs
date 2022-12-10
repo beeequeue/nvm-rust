@@ -13,7 +13,7 @@ use crate::{
     about = "Uninstall a version",
     alias = "r",
     alias = "rm",
-    alias = "remove",
+    alias = "remove"
 )]
 pub struct UninstallCommand {
     /// A semver range. The latest version matching this range will be installed

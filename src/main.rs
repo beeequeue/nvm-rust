@@ -94,8 +94,7 @@ impl Config {
 
 fn ensure_dir_exists(path: &Path) {
     if !path.exists() {
-        fs::create_dir_all(path)
-            .unwrap_or_else(|err| panic!("Could not create {path:?} - {err}"));
+        fs::create_dir_all(path).unwrap_or_else(|err| panic!("Could not create {path:?} - {err}"));
 
         println!("Created nvm dir at {path:?}");
     }
