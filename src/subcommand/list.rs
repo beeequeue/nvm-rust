@@ -5,7 +5,7 @@ use node_semver::Range;
 
 use crate::{
     node_version,
-    node_version::{InstalledNodeVersion, NodeVersion, OnlineNodeVersion},
+    node_version::{parse_range, InstalledNodeVersion, NodeVersion, OnlineNodeVersion},
     subcommand::Action,
     Config,
 };
@@ -50,12 +50,12 @@ impl<'p> VersionStatus<'p> {
 #[command(about = "List installed and released node versions", alias = "ls")]
 pub struct ListCommand {
     /// Only display installed versions
-    #[clap(short, long, alias = "installed")]
+    #[arg(short, long, alias = "installed")]
     pub local: bool,
     /// Filter by semantic versions.
     ///
     /// `12`, `^10.9`, `>=8.10`, `>=8, <9`
-    #[clap(short('F'), long, validator = node_version::is_version_range)]
+    #[arg(short('F'), long, value_parser = parse_range)]
     pub filter: Option<Range>,
 }
 

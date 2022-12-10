@@ -37,7 +37,7 @@ impl Ord for dyn NodeVersion {
     }
 }
 
-pub fn is_version_range(value: &str) -> Result<Range> {
+pub fn parse_range(value: &str) -> Result<Range> {
     Range::parse(value).context(value.to_string())
 }
 

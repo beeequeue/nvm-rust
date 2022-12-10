@@ -2,17 +2,17 @@ use anyhow::Result;
 use clap::Parser;
 use node_semver::Range;
 
-use crate::{files, node_version::is_version_range, subcommand::Action, Config};
+use crate::{files, node_version::parse_range, subcommand::Action, Config};
 
 #[derive(Parser, Clone, Debug)]
 #[command(
     about = "Echo what a version string will be parsed to",
     alias = "pv",
-    hide(true)
+    hide(true),
 )]
 pub struct ParseVersionCommand {
     /// The semver range to echo the parsed result of
-    #[clap(validator = is_version_range)]
+    #[arg(value_parser = parse_range)]
     pub version: Option<String>,
 }
 

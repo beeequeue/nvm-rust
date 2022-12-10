@@ -13,8 +13,8 @@ use clap::Parser;
 use node_semver::{Range, Version};
 
 use crate::{
-    files, node_version,
-    node_version::{InstalledNodeVersion, NodeVersion},
+    files,
+    node_version::{parse_range, InstalledNodeVersion, NodeVersion},
     subcommand::Action,
     Config,
 };
@@ -23,11 +23,10 @@ use crate::{
 #[command(
     about = "Switch to an installed node version",
     alias = "switch",
-    alias = "use"
 )]
 pub struct SwitchCommand {
     /// A semver range. The latest version matching this range will be switched to.
-    #[clap(validator = node_version::is_version_range)]
+    #[arg(value_parser = parse_range)]
     pub version: Option<Range>,
 }
 

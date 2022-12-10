@@ -3,8 +3,7 @@ use clap::Parser;
 use node_semver::Range;
 
 use crate::{
-    node_version,
-    node_version::{InstalledNodeVersion, NodeVersion},
+    node_version::{parse_range, InstalledNodeVersion, NodeVersion},
     subcommand::Action,
     Config,
 };
@@ -14,11 +13,11 @@ use crate::{
     about = "Uninstall a version",
     alias = "r",
     alias = "rm",
-    alias = "remove"
+    alias = "remove",
 )]
 pub struct UninstallCommand {
     /// A semver range. The latest version matching this range will be installed
-    #[clap(validator = node_version::is_version_range)]
+    #[arg(value_parser = parse_range)]
     pub version: Range,
 }
 
