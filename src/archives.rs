@@ -36,13 +36,13 @@ pub fn extract_archive(bytes: Response, path: &Path) -> Result<()> {
 
         if item.is_dir() && !new_path.exists() {
             create_dir_all(&new_path)
-                .unwrap_or_else(|_| panic!("Could not create new folder: {:?}", new_path));
+                .unwrap_or_else(|_| panic!("Could not create new folder: {new_path:?}"));
         }
 
         if item.is_file() {
             let mut file = File::create(&*new_path)?;
             copy(&mut item, &mut file)
-                .unwrap_or_else(|_| panic!("Couldn't write to {:?}", new_path));
+                .unwrap_or_else(|_| panic!("Couldn't write to {new_path:?}"));
         }
     }
 

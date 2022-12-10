@@ -95,13 +95,13 @@ impl Config {
 fn ensure_dir_exists(path: &Path) {
     if !path.exists() {
         fs::create_dir_all(path)
-            .unwrap_or_else(|err| panic!("Could not create {:?} - {}", path, err));
+            .unwrap_or_else(|err| panic!("Could not create {path:?} - {err}"));
 
-        println!("Created nvm dir at {:?}", path);
+        println!("Created nvm dir at {path:?}");
     }
 
     if !path.is_dir() {
-        panic!("{:?} is not a directory! Please rename it.", path)
+        panic!("{path:?} is not a directory! Please rename it.")
     }
 }
 
@@ -119,7 +119,7 @@ https://blogs.windows.com/windowsdeveloper/2016/12/02/symlinks-windows-10";
 fn ensure_symlinks_work(config: &Config) -> Result<()> {
     let target_path = &config.get_dir().join("test");
 
-    if windows::fs::symlink_dir(&config.get_shims_dir(), target_path).is_err() {
+    if windows::fs::symlink_dir(config.get_shims_dir(), target_path).is_err() {
         bail!("{SYMLINK_ERROR}");
     }
 

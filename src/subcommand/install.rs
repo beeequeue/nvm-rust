@@ -83,7 +83,7 @@ impl Action<InstallCommand> for InstallCommand {
 fn download_and_extract_to(version: &OnlineNodeVersion, path: &Path) -> Result<()> {
     let url = version.get_download_url().unwrap();
 
-    println!("Downloading from {}...", url);
+    println!("Downloading from {url}...");
     let response = reqwest::blocking::get(url)
         .context(format!("Failed to download version: {}", version.version()))?;
 
