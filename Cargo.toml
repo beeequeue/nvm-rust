@@ -17,6 +17,10 @@ exclude = [
   "test-data/",
 ]
 
+[profile.release]
+strip = true
+lto = true
+
 [[bin]]
 name = "nvm"
 path = "src/main.rs"
