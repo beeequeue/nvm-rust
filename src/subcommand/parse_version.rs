@@ -1,15 +1,14 @@
 use anyhow::Result;
-use clap::{AppSettings, Parser};
+use clap::Parser;
 use node_semver::Range;
 
 use crate::{files, node_version::is_version_range, subcommand::Action, Config};
 
 #[derive(Parser, Clone, Debug)]
-#[clap(
-about = "Echo what a version string will be parsed to",
-alias = "pv",
-setting = AppSettings::ColoredHelp,
-setting = AppSettings::Hidden
+#[command(
+    about = "Echo what a version string will be parsed to",
+    alias = "pv",
+    hide(true)
 )]
 pub struct ParseVersionCommand {
     /// The semver range to echo the parsed result of

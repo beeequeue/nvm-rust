@@ -1,5 +1,5 @@
 use anyhow::Result;
-use clap::{AppSettings, Parser};
+use clap::Parser;
 use itertools::Itertools;
 use node_semver::Range;
 
@@ -47,11 +47,7 @@ impl<'p> VersionStatus<'p> {
 }
 
 #[derive(Parser, Clone, Debug)]
-#[clap(
-about = "List installed and released node versions",
-alias = "ls",
-setting = AppSettings::ColoredHelp
-)]
+#[command(about = "List installed and released node versions", alias = "ls")]
 pub struct ListCommand {
     /// Only display installed versions
     #[clap(short, long, alias = "installed")]

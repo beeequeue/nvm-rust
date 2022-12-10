@@ -9,7 +9,7 @@ use std::os::unix::fs::symlink;
 use std::os::windows::fs::symlink_dir;
 
 use anyhow::Result;
-use clap::{AppSettings, Parser};
+use clap::Parser;
 use node_semver::{Range, Version};
 
 use crate::{
@@ -20,11 +20,10 @@ use crate::{
 };
 
 #[derive(Parser, Clone, Debug)]
-#[clap(
-about = "Switch to an installed node version",
-alias = "switch",
-alias = "use",
-setting = AppSettings::ColoredHelp
+#[command(
+    about = "Switch to an installed node version",
+    alias = "switch",
+    alias = "use"
 )]
 pub struct SwitchCommand {
     /// A semver range. The latest version matching this range will be switched to.

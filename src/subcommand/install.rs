@@ -1,7 +1,7 @@
 use std::{borrow::Borrow, path::Path};
 
 use anyhow::{Context, Result};
-use clap::{AppSettings, Parser};
+use clap::Parser;
 use node_semver::Range;
 
 use crate::{
@@ -12,12 +12,7 @@ use crate::{
 };
 
 #[derive(Parser, Clone, Debug)]
-#[clap(
-about = "Install a new node version",
-alias = "i",
-alias = "add",
-setting = AppSettings::ColoredHelp
-)]
+#[command(about = "Install a new node version", alias = "i", alias = "add")]
 pub struct InstallCommand {
     /// A semver range. The latest version matching this range will be installed
     #[clap(validator = node_version::is_version_range)]

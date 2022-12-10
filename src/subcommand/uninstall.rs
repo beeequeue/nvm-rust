@@ -1,5 +1,5 @@
 use anyhow::Result;
-use clap::{AppSettings, Parser};
+use clap::Parser;
 use node_semver::Range;
 
 use crate::{
@@ -10,12 +10,7 @@ use crate::{
 };
 
 #[derive(Parser, Clone, Debug)]
-#[clap(
-about = "Uninstall a version",
-alias = "r",
-alias = "remove",
-setting = AppSettings::ColoredHelp
-)]
+#[command(about = "Uninstall a version", alias = "r", alias = "remove")]
 pub struct UninstallCommand {
     /// A semver range. The latest version matching this range will be installed
     #[clap(validator = node_version::is_version_range)]
