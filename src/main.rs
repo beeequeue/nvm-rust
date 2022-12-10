@@ -17,6 +17,7 @@ mod archives;
 mod files;
 mod node_version;
 mod subcommand;
+mod utils;
 
 #[derive(Parser, Clone, Debug)]
 enum Subcommands {
