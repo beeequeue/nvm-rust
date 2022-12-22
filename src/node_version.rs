@@ -1,5 +1,4 @@
 use std::{
-    borrow::Borrow,
     cmp::Ordering,
     collections::HashMap,
     fs::{read_link, remove_dir_all},
@@ -89,7 +88,7 @@ fn parse_version_str(version_str: &str) -> Result<Version> {
     let clean_version = if version_str.starts_with('v') {
         version_str.get(1..).unwrap()
     } else {
-        version_str.borrow()
+        version_str
     };
 
     Version::parse(clean_version).context(version_str.to_owned())
@@ -252,7 +251,7 @@ impl InstalledNodeVersion {
     pub fn find_matching(config: &Config, range: &Range) -> Option<InstalledNodeVersion> {
         Self::list(config)
             .iter()
-            .find(|inv| range.satisfies(inv.version().borrow()))
+            .find(|inv| range.satisfies(inv.version()))
             .map(|inv| inv.to_owned())
     }
 }
