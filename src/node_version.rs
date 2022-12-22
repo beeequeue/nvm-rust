@@ -32,6 +32,8 @@ const ARCH: &str = "x86";
 #[cfg(target_arch = "aarch64")]
 const ARCH: &str = "arm64";
 
+const X64: &str = "x64";
+
 pub trait NodeVersion {
     fn version(&self) -> &Version;
 }
@@ -119,13 +121,40 @@ impl OnlineNodeVersion {
     }
 
     pub fn download_url(&self) -> String {
-        let file_name = self.file();
+        let file_name: String;
+
+        #[cfg(target_os = "macos")]
+        {
+            let has_arm = self.has_arm();
+
+            file_name = self.file(!has_arm);
+        }
+
+        #[cfg(not(target_os = "macos"))]
+        {
+            file_name = self.file(false);
+        }
 
         format!("https://nodejs.org/dist/v{}/{}", self.version, file_name)
     }
 
-    fn file(&self) -> String {
-        format!("node-v{}-{PLATFORM}-{ARCH}{EXT}", self.version())
+    fn file(&self, force_x64: bool) -> String {
+        format!(
+            "node-v{VERSION}-{PLATFORM}-{ARCH}{EXT}",
+            VERSION = self.version(),
+            ARCH = if force_x64 { X64 } else { ARCH },
+        )
+    }
+
+    #[cfg(target_os = "macos")]
+    fn has_arm(&self) -> bool {
+        for file in self.files.iter() {
+            if file.contains("osx") && file.contains("arm64") {
+                return true;
+            }
+        }
+
+        false
     }
 }
 
@@ -277,20 +306,6 @@ mod tests {
         use spectral::prelude::*;
 
         use crate::node_version::OnlineNodeVersion;
-
-        #[test]
-        fn formats_file_name_correctly() -> Result<()> {
-            let version = OnlineNodeVersion {
-                version: Version::from((18, 12, 1)),
-                release_date: "".to_string(),
-                files: vec![],
-            };
-
-            assert_that!(version.file())
-                .is_equal_to("node-v18.12.1-darwin-arm64.tar.gz".to_string());
-
-            Ok(())
-        }
 
         #[test]
         fn can_parse_version_data() -> Result<()> {
