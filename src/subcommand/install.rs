@@ -1,4 +1,4 @@
-use std::{borrow::Borrow, path::Path, time::Duration};
+use std::{path::Path, time::Duration};
 
 use anyhow::{Context, Result};
 use clap::Parser;
@@ -59,7 +59,7 @@ impl Action<InstallCommand> for InstallCommand {
         }
 
         let install_path = version_to_install.install_path(config);
-        download_and_extract_to(version_to_install.borrow(), &install_path)?;
+        download_and_extract_to(version_to_install, &install_path)?;
 
         if config.force
             || (options.switch
@@ -78,7 +78,9 @@ impl Action<InstallCommand> for InstallCommand {
 
         if options.enable_corepack {
             if let Err(e) = std::process::Command::new(
-                install_path.join(format!("corepack{}", utils::exec_ext())),
+                install_path
+                    .join("bin")
+                    .join(format!("corepack{}", utils::exec_ext())),
             )
             .arg("enable")
             .output()

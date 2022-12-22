@@ -63,7 +63,7 @@ pub fn extract_archive(bytes: Vec<u8>, path: &Path) -> Result<()> {
     let mut archive = Archive::new(tar);
 
     let version_dir_path = path.to_owned();
-    create_dir_all(version_dir_path.to_owned()).expect("fuck");
+    create_dir_all(&version_dir_path).expect("fuck");
 
     println!("Extracting...");
 
@@ -72,11 +72,11 @@ pub fn extract_archive(bytes: Vec<u8>, path: &Path) -> Result<()> {
         .map_err(anyhow::Error::from)?
         .filter_map(|e| e.ok())
         .map(|mut entry| -> Result<Unpacked> {
-            let file_path = entry.path()?.to_owned();
+            let file_path = entry.path()?;
             let file_path = file_path.to_str().unwrap();
 
             let new_path: PathBuf = if let Some(index) = file_path.find('/') {
-                path.to_owned().join(file_path[index + 1..].to_owned())
+                path.to_owned().join(&file_path[index + 1..])
             } else {
                 // This happens if it's the root index, the base folder
                 path.to_owned()
@@ -105,7 +105,7 @@ pub fn extract_archive(bytes: Vec<u8>, path: &Path) -> Result<()> {
         ));
     }
 
-    println!("Extracted to {:?}", version_dir_path);
+    println!("Extracted to {version_dir_path:?}");
 
     Ok(())
 }

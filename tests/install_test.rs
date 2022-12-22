@@ -8,7 +8,7 @@ mod install {
     fn can_install_version_matching_range() -> Result<()> {
         let (temp_dir, mut cmd) = utils::setup_integration_test()?;
 
-        let version_range = ">=12, <12.8";
+        let version_range = ">=14, <14.21";
         let result = cmd
             .arg("install")
             .arg("--force")
@@ -17,10 +17,10 @@ mod install {
 
         utils::assert_outputs_contain(
             &result,
-            "Downloading from https://nodejs.org/dist/v12.7.0/node-v12.7.0-",
+            "Downloading from https://nodejs.org/dist/v14.20.1/node-v14.20.1-",
             "",
         )?;
-        utils::assert_version_installed(&temp_dir, "12.7.0", true)?;
+        utils::assert_version_installed(&temp_dir, "14.20.1", true)?;
 
         temp_dir.close().map_err(anyhow::Error::from)
     }
@@ -29,12 +29,12 @@ mod install {
     fn can_install_version_matching_exact_version() -> Result<()> {
         let (temp_dir, mut cmd) = utils::setup_integration_test()?;
 
-        let version_str = "12.18.3";
+        let version_str = "14.21.2";
         let result = cmd.arg("install").arg("--force").arg(version_str).assert();
 
         utils::assert_outputs_contain(
             &result,
-            "Downloading from https://nodejs.org/dist/v12.18.3/node-v12.18.3-",
+            "Downloading from https://nodejs.org/dist/v14.21.2/node-v14.21.2-",
             "",
         )?;
         utils::assert_version_installed(&temp_dir, version_str, true)?;
@@ -46,12 +46,12 @@ mod install {
     fn stops_when_installing_installed_version() -> Result<()> {
         let (temp_dir, mut cmd) = utils::setup_integration_test()?;
 
-        let version_str = "12.18.3";
+        let version_str = "14.21.2";
         utils::install_mock_version(&temp_dir, version_str)?;
 
         let result = cmd.arg("install").arg(version_str).assert();
 
-        utils::assert_outputs_contain(&result, "12.18.3 is already installed - skipping...", "")?;
+        utils::assert_outputs_contain(&result, "14.21.2 is already installed - skipping...", "")?;
 
         temp_dir.close().map_err(anyhow::Error::from)
     }
@@ -60,12 +60,12 @@ mod install {
     fn force_forces_install_of_installed_version() -> Result<()> {
         let (temp_dir, mut cmd) = utils::setup_integration_test()?;
 
-        let version_str = "12.18.3";
+        let version_str = "14.21.2";
         let result = cmd.arg("install").arg("--force").arg(version_str).assert();
 
         utils::assert_outputs_contain(
             &result,
-            "Downloading from https://nodejs.org/dist/v12.18.3/node-v12.18.3-",
+            "Downloading from https://nodejs.org/dist/v14.21.2/node-v14.21.2-",
             "",
         )?;
         utils::assert_outputs_contain(&result, "Extracting...", "")?;

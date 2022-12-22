@@ -1,5 +1,4 @@
 use std::{
-    borrow::Borrow,
     cmp::Ordering,
     collections::HashMap,
     fs::{read_link, remove_dir_all},
@@ -11,6 +10,29 @@ use node_semver::{Range, Version};
 use serde::Deserialize;
 
 use crate::{utils, Config};
+
+#[cfg(target_os = "windows")]
+const PLATFORM: &str = "win";
+#[cfg(target_os = "macos")]
+const PLATFORM: &str = "darwin";
+#[cfg(target_os = "linux")]
+const PLATFORM: &str = "linux";
+
+#[cfg(target_os = "windows")]
+const EXT: &str = ".zip";
+#[cfg(target_os = "macos")]
+const EXT: &str = ".tar.gz";
+#[cfg(target_os = "linux")]
+const EXT: &str = ".tar.gz";
+
+#[cfg(target_arch = "x86_64")]
+const ARCH: &str = "x64";
+#[cfg(target_arch = "x86")]
+const ARCH: &str = "x86";
+#[cfg(target_arch = "aarch64")]
+const ARCH: &str = "arm64";
+
+const X64: &str = "x64";
 
 pub trait NodeVersion {
     fn version(&self) -> &Version;
@@ -68,7 +90,7 @@ fn parse_version_str(version_str: &str) -> Result<Version> {
     let clean_version = if version_str.starts_with('v') {
         version_str.get(1..).unwrap()
     } else {
-        version_str.borrow()
+        version_str
     };
 
     Version::parse(clean_version).context(version_str.to_owned())
@@ -99,35 +121,40 @@ impl OnlineNodeVersion {
     }
 
     pub fn download_url(&self) -> String {
-        let file_name = self.file();
+        let file_name: String;
+
+        #[cfg(target_os = "macos")]
+        {
+            let has_arm = self.has_arm();
+
+            file_name = self.file(!has_arm);
+        }
+
+        #[cfg(not(target_os = "macos"))]
+        {
+            file_name = self.file(false);
+        }
 
         format!("https://nodejs.org/dist/v{}/{}", self.version, file_name)
     }
 
-    #[cfg(target_os = "windows")]
-    fn file(&self) -> String {
+    fn file(&self, force_x64: bool) -> String {
         format!(
-            "node-v{version}-win-{arch}.zip",
-            version = self.version(),
-            arch = if cfg!(target_arch = "x86") {
-                "x86"
-            } else {
-                "x64"
-            },
+            "node-v{VERSION}-{PLATFORM}-{ARCH}{EXT}",
+            VERSION = self.version(),
+            ARCH = if force_x64 { X64 } else { ARCH },
         )
     }
 
     #[cfg(target_os = "macos")]
-    fn file(&self) -> String {
-        format!(
-            "node-v{version}-darwin-x64.tar.gz",
-            version = self.version()
-        )
-    }
+    fn has_arm(&self) -> bool {
+        for file in self.files.iter() {
+            if file.contains("osx") && file.contains("arm64") {
+                return true;
+            }
+        }
 
-    #[cfg(target_os = "linux")]
-    fn file(&self) -> String {
-        format!("node-v{version}-linux-x64.tar.gz", version = self.version())
+        false
     }
 }
 
@@ -253,7 +280,7 @@ impl InstalledNodeVersion {
     pub fn find_matching(config: &Config, range: &Range) -> Option<InstalledNodeVersion> {
         Self::list(config)
             .iter()
-            .find(|inv| range.satisfies(inv.version().borrow()))
+            .find(|inv| range.satisfies(inv.version()))
             .map(|inv| inv.to_owned())
     }
 }
@@ -275,6 +302,8 @@ mod tests {
     mod online_version {
         use anyhow::Result;
         use node_semver::Version;
+
+        use spectral::prelude::*;
 
         use crate::node_version::OnlineNodeVersion;
 
@@ -350,7 +379,7 @@ mod tests {
             let result: OnlineNodeVersion = serde_json::from_str(json_str)
                 .expect("Failed to parse version data from nodejs.org");
 
-            assert_eq!(expected, result);
+            assert_that!(expected).is_equal_to(result);
 
             Ok(())
         }
