@@ -5,7 +5,9 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use anyhow::{bail, Result};
+#[cfg(windows)]
+use anyhow::bail;
+use anyhow::Result;
 use clap::{Parser, ValueHint};
 
 use crate::subcommand::{

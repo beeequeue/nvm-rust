@@ -12,6 +12,27 @@ use serde::Deserialize;
 
 use crate::{utils, Config};
 
+#[cfg(target_os = "windows")]
+const PLATFORM: &str = "win";
+#[cfg(target_os = "macos")]
+const PLATFORM: &str = "darwin";
+#[cfg(target_os = "linux")]
+const PLATFORM: &str = "linux";
+
+#[cfg(target_os = "windows")]
+const EXT: &str = ".zip";
+#[cfg(target_os = "macos")]
+const EXT: &str = ".tar.gz";
+#[cfg(target_os = "linux")]
+const EXT: &str = ".tar.gz";
+
+#[cfg(target_arch = "x86_64")]
+const ARCH: &str = "x64";
+#[cfg(target_arch = "x86")]
+const ARCH: &str = "x86";
+#[cfg(target_arch = "aarch64")]
+const ARCH: &str = "arm64";
+
 pub trait NodeVersion {
     fn version(&self) -> &Version;
 }
@@ -104,30 +125,8 @@ impl OnlineNodeVersion {
         format!("https://nodejs.org/dist/v{}/{}", self.version, file_name)
     }
 
-    #[cfg(target_os = "windows")]
     fn file(&self) -> String {
-        format!(
-            "node-v{version}-win-{arch}.zip",
-            version = self.version(),
-            arch = if cfg!(target_arch = "x86") {
-                "x86"
-            } else {
-                "x64"
-            },
-        )
-    }
-
-    #[cfg(target_os = "macos")]
-    fn file(&self) -> String {
-        format!(
-            "node-v{version}-darwin-x64.tar.gz",
-            version = self.version()
-        )
-    }
-
-    #[cfg(target_os = "linux")]
-    fn file(&self) -> String {
-        format!("node-v{version}-linux-x64.tar.gz", version = self.version())
+        format!("node-v{}-{PLATFORM}-{ARCH}{EXT}", self.version())
     }
 }
 
@@ -276,7 +275,23 @@ mod tests {
         use anyhow::Result;
         use node_semver::Version;
 
+        use spectral::prelude::*;
+
         use crate::node_version::OnlineNodeVersion;
+
+        #[test]
+        fn formats_file_name_correctly() -> Result<()> {
+            let version = OnlineNodeVersion {
+                version: Version::from((18, 12, 1)),
+                release_date: "".to_string(),
+                files: vec![],
+            };
+
+            assert_that!(version.file())
+                .is_equal_to("node-v18.12.1-darwin-arm64.tar.gz".to_string());
+
+            Ok(())
+        }
 
         #[test]
         fn can_parse_version_data() -> Result<()> {
@@ -350,7 +365,7 @@ mod tests {
             let result: OnlineNodeVersion = serde_json::from_str(json_str)
                 .expect("Failed to parse version data from nodejs.org");
 
-            assert_eq!(expected, result);
+            assert_that!(expected).is_equal_to(result);
 
             Ok(())
         }
