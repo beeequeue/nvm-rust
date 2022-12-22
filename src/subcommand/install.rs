@@ -78,7 +78,9 @@ impl Action<InstallCommand> for InstallCommand {
 
         if options.enable_corepack {
             if let Err(e) = std::process::Command::new(
-                install_path.join(format!("corepack{}", utils::exec_ext())),
+                install_path
+                    .join("bin")
+                    .join(format!("corepack{}", utils::exec_ext())),
             )
             .arg("enable")
             .output()
