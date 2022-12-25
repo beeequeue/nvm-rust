@@ -98,3 +98,12 @@ task build:release
 ```
 
 You can find all the commands in the [Taskfile](./Taskfile.yml).
+
+## Publish new version
+
+1. Up version number in `Cargo.toml`
+2. Create tag on commit updating the version with said version (`vX.X.X`)
+3. Push both
+4. Wait for CI to create draft release for tag
+5. Edit draft release notes
+6. Publish

@@ -9,30 +9,11 @@ use anyhow::{Context, Result};
 use node_semver::{Range, Version};
 use serde::Deserialize;
 
-use crate::{utils, Config};
-
-#[cfg(target_os = "windows")]
-const PLATFORM: &str = "win";
-#[cfg(target_os = "macos")]
-const PLATFORM: &str = "darwin";
-#[cfg(target_os = "linux")]
-const PLATFORM: &str = "linux";
-
-#[cfg(target_os = "windows")]
-const EXT: &str = ".zip";
-#[cfg(target_os = "macos")]
-const EXT: &str = ".tar.gz";
-#[cfg(target_os = "linux")]
-const EXT: &str = ".tar.gz";
-
-#[cfg(target_arch = "x86_64")]
-const ARCH: &str = "x64";
-#[cfg(target_arch = "x86")]
-const ARCH: &str = "x86";
-#[cfg(target_arch = "aarch64")]
-const ARCH: &str = "arm64";
-
-const X64: &str = "x64";
+use crate::{
+    constants,
+    constants::{ARCH, EXT, PLATFORM, X64},
+    Config,
+};
 
 pub trait NodeVersion {
     fn version(&self) -> &Version;
@@ -149,6 +130,7 @@ impl OnlineNodeVersion {
     #[cfg(target_os = "macos")]
     fn has_arm(&self) -> bool {
         for file in self.files.iter() {
+            // We check for both ARM _and_ OSX since we don't want to fall back to x64 on other platforms.
             if file.contains("osx") && file.contains("arm64") {
                 return true;
             }
@@ -218,8 +200,8 @@ impl InstalledNodeVersion {
             read_link(config.get_shims_dir()).expect("Could not read installation dir");
 
         let mut required_files = vec![version_dir; 2];
-        required_files[0].set_file_name(format!("node{}", utils::exec_ext()));
-        required_files[1].set_file_name(format!("npm{}", utils::exec_ext()));
+        required_files[0].set_file_name(format!("node{}", constants::EXEC_EXT));
+        required_files[1].set_file_name(format!("npm{}", constants::EXEC_EXT));
 
         if let Some(missing_file) = required_files.iter().find(|file| !file.exists()) {
             anyhow::bail!(

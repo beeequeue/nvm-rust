@@ -51,7 +51,7 @@ pub fn get_version_file() -> Option<VersionFile> {
         let contents = fs::read_to_string(existing_file);
 
         if let Ok(contents) = contents {
-            let parse_result = Range::parse(contents);
+            let parse_result = Range::parse(contents.trim());
 
             if let Ok(parse_result) = parse_result {
                 return Some(VersionFile::Nvmrc(parse_result));
