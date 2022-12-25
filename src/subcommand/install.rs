@@ -5,14 +5,9 @@ use clap::Parser;
 use node_semver::Range;
 use ureq;
 
-use crate::{
-    archives, files,
-    node_version::{
-        filter_version_req, parse_range, InstalledNodeVersion, NodeVersion, OnlineNodeVersion,
-    },
-    subcommand::{switch::SwitchCommand, Action},
-    utils, Config,
-};
+use crate::{archives, Config, constants, files, node_version::{
+    filter_version_req, InstalledNodeVersion, NodeVersion, OnlineNodeVersion, parse_range,
+}, subcommand::{Action, switch::SwitchCommand}};
 
 #[derive(Parser, Clone, Debug)]
 #[command(about = "Install a new node version", alias = "i", alias = "add")]
@@ -80,7 +75,7 @@ impl Action<InstallCommand> for InstallCommand {
             if let Err(e) = std::process::Command::new(
                 install_path
                     .join("bin")
-                    .join(format!("corepack{}", utils::exec_ext())),
+                    .join(format!("corepack{}", constants::EXEC_EXT)),
             )
             .arg("enable")
             .output()
