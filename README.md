@@ -31,7 +31,7 @@ _[Read more about it here](https://blogs.windows.com/windowsdeveloper/2016/12/02
 |                                                              Platforms | Win, Mac, Linux |                          Windows                          |                POSIX                 |
 |                                      [Range matching](#range-matching) |        ✅        |                             ❌                             |                  ✅                   |
 | [Version files](#version-files-packagejsonengines-nvmrc-tool-versions) |        ✅        |                             ❌                             |                  ✅                   |
-|                    [Default global packages](#default-global-packages) |       🔧        |                             ❌                             |                  ✅                   |
+|                    [Default global packages](#default-global-packages) |       ❌        |                             ❌                             |                  ✅                   |
 |                                                                Node <4 |       ✅*        |                             ✅                             |                  ✅                   |
 |                                              Disabling nvm temporarily |        ❌        |                             ✅                             |                  ✅                   |
 |                                                                Caching |        ❌        |                             ❌                             |                  ✅                   |
