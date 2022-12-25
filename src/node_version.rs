@@ -130,6 +130,7 @@ impl OnlineNodeVersion {
     #[cfg(target_os = "macos")]
     fn has_arm(&self) -> bool {
         for file in self.files.iter() {
+            // We check for both ARM _and_ OSX since we don't want to fall back to x64 on other platforms.
             if file.contains("osx") && file.contains("arm64") {
                 return true;
             }
