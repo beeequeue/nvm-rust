@@ -37,7 +37,7 @@ node-semver = "2.1.0"
 serde = { version = "1.0.152", features = ["derive"] }
 serde_json = "1.0.91"
 spectral = "0.6.0"
-ureq = { version = "2.6.1", features = ["json"] }
+ureq = { version = "2.6.2", features = ["json"] }
 
 [target.'cfg(unix)'.dependencies]
 flate2 = "1.0.25"
