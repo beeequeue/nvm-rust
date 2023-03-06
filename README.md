@@ -8,7 +8,8 @@ Cross platform nvm that doesn't suck™
 
 1. Download binary for your OS from the [Releases](https://github.com/BeeeQueue/nvm-rust/releases)
 2. Rename the file to `nvm` and place it somewhere in your `$PATH`
-3. Enjoy?
+3. Add `path/to/nvm-home/shims` to your PATH _(TODO: document this)_
+4. Enjoy?
 
 ### Cargo
 
