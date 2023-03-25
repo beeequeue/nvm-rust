@@ -49,4 +49,4 @@ zip = "0.6.4"
 [dev-dependencies]
 assert_cmd = "2.0.10"
 assert_fs = "1.0.12"
-predicates = "3.0.1"
+predicates = "3.0.2"
