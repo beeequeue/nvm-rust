@@ -40,7 +40,7 @@ spectral = "0.6.0"
 ureq = { version = "2.6.2", features = ["native-certs", "json"] }
 
 [target.'cfg(unix)'.dependencies]
-flate2 = "1.0.25"
+flate2 = "1.0.26"
 tar = "0.4.38"
 
 [target.'cfg(windows)'.dependencies]
