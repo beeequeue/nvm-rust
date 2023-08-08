@@ -41,7 +41,7 @@ ureq = { version = "2.7.1", features = ["native-certs", "json"] }
 
 [target.'cfg(unix)'.dependencies]
 flate2 = "1.0.26"
-tar = "0.4.39"
+tar = "0.4.40"
 
 [target.'cfg(windows)'.dependencies]
 zip = "0.6.6"
