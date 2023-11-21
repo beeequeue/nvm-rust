@@ -34,7 +34,7 @@ dialoguer = "0.11.0"
 dirs = "4.0.0"
 itertools = "0.12.0"
 node-semver = "2.1.0"
-serde = { version = "1.0.192", features = ["derive"] }
+serde = { version = "1.0.193", features = ["derive"] }
 serde_json = "1.0.108"
 spectral = "0.6.0"
 ureq = { version = "2.9.0", features = ["native-certs", "json"] }
