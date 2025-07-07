@@ -1,3 +1,9 @@
+⚠️ This tool is deprecated, I recommend using **mise** instead as it has excellent UX and works on all platforms!
+
+I might still do some maintenance and release a version with updated dependencies but new features are unlikely to say the least.
+
+---
+
 # nvm(-rust)
 
 Cross platform nvm that doesn't suck™
