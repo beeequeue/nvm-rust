@@ -90,10 +90,11 @@ pub struct OnlineNodeVersion {
 
 impl OnlineNodeVersion {
     pub fn fetch_all() -> Result<Vec<Self>> {
-        let response = ureq::get("https://nodejs.org/dist/index.json").call()?;
+        let mut response = ureq::get("https://nodejs.org/dist/index.json").call()?;
 
         response
-            .into_json()
+            .body_mut()
+            .read_json()
             .context("Failed to parse versions list from nodejs.org")
     }
 
@@ -285,7 +286,7 @@ mod tests {
         use anyhow::Result;
         use node_semver::Version;
 
-        use spectral::prelude::*;
+        use speculoos::prelude::*;
 
         use crate::node_version::OnlineNodeVersion;
 

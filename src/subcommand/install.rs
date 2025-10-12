@@ -1,9 +1,12 @@
-use std::{path::Path, time::Duration};
+use std::{io::Read, path::Path, time::Duration};
 
 use anyhow::{Context, Result};
 use clap::Parser;
 use node_semver::Range;
-use ureq;
+use ureq::{
+    self,
+    tls::{RootCerts, TlsConfig, TlsProvider},
+};
 
 use crate::{
     archives, constants, files,
@@ -95,21 +98,36 @@ impl Action<InstallCommand> for InstallCommand {
 
 fn download_and_extract_to(version: &OnlineNodeVersion, path: &Path) -> Result<()> {
     let url = version.download_url();
-    let agent = ureq::AgentBuilder::new()
-        .timeout_connect(Duration::from_secs(30))
-        .timeout_read(Duration::from_secs(120))
-        .timeout_write(Duration::from_secs(120))
-        .build();
+    let agent = ureq::config::Config::builder()
+        .timeout_connect(Some(Duration::from_secs(30)))
+        .timeout_recv_body(Some(Duration::from_secs(180)))
+        .timeout_send_request(Some(Duration::from_secs(120)))
+        .user_agent("beequeue/nvm-rust")
+        .tls_config(
+            TlsConfig::builder()
+                .provider(TlsProvider::NativeTls)
+                .root_certs(RootCerts::PlatformVerifier)
+                .build(),
+        )
+        .build()
+        .new_agent();
 
     println!("Downloading from {url}...");
-    let response = agent
+    let mut response = agent
         .get(&url)
         .call()
         .context(format!("Failed to download version: {}", version.version()))?;
 
-    let length: usize = response.header("Content-Length").unwrap().parse()?;
+    let length: usize = response
+        .headers()
+        .get("Content-Length")
+        .expect("Did not receive Content-Length header in response")
+        .to_str()
+        .unwrap()
+        .parse()?;
+
     let mut bytes: Vec<u8> = Vec::with_capacity(length);
-    response.into_reader().read_to_end(&mut bytes)?;
+    response.body_mut().as_reader().read_to_end(&mut bytes)?;
 
     archives::extract_archive(bytes, path)
 }
