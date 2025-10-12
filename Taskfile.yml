@@ -4,7 +4,7 @@ tasks:
   lint:
     desc: Lint code
     cmds:
-      - cargo clippy {{.CLI_ARGS}}
+      - cargo clippy --all-targets {{.CLI_ARGS}}
       - cargo fmt --check --all
   lint:fix:
     desc: Lint code and fix problems with autofixes
