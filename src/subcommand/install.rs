@@ -67,7 +67,7 @@ impl Action<InstallCommand> for InstallCommand {
         if config.force
             || (options.switch
                 && dialoguer::Confirm::new()
-                    .with_prompt(format!("Switch to {}?", version_to_install.to_string()))
+                    .with_prompt(format!("Switch to {}?", version_to_install))
                     .default(true)
                     .interact()?)
         {

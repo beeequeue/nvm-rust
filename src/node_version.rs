@@ -19,7 +19,7 @@ pub trait NodeVersion {
     fn version(&self) -> &Version;
 }
 
-impl PartialEq<Self> for dyn NodeVersion {
+impl PartialEq for dyn NodeVersion {
     fn eq(&self, other: &Self) -> bool {
         self.version().eq(other.version())
     }
@@ -27,15 +27,15 @@ impl PartialEq<Self> for dyn NodeVersion {
 
 impl Eq for dyn NodeVersion {}
 
-impl PartialOrd<Self> for dyn NodeVersion {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(self.version().cmp(other.version()))
-    }
-}
-
 impl Ord for dyn NodeVersion {
     fn cmp(&self, other: &Self) -> Ordering {
         self.version().cmp(other.version())
+    }
+}
+
+impl PartialOrd for dyn NodeVersion {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
     }
 }
 
@@ -141,9 +141,9 @@ impl OnlineNodeVersion {
     }
 }
 
-impl ToString for OnlineNodeVersion {
-    fn to_string(&self) -> String {
-        self.version.to_string()
+impl std::fmt::Display for OnlineNodeVersion {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.version)
     }
 }
 
@@ -268,9 +268,9 @@ impl InstalledNodeVersion {
     }
 }
 
-impl ToString for InstalledNodeVersion {
-    fn to_string(&self) -> String {
-        self.version.to_string()
+impl std::fmt::Display for InstalledNodeVersion {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.version)
     }
 }
 

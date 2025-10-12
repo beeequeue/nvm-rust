@@ -40,7 +40,7 @@ impl<'p> VersionStatus<'p> {
 
     fn to_version_string(&self) -> String {
         match self {
-            VersionStatus::Outdated(version) => format!("-> {}", version.to_string()),
+            VersionStatus::Outdated(version) => format!("-> {}", version),
             _ => "".to_string(),
         }
     }

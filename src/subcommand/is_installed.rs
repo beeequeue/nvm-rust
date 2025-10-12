@@ -48,7 +48,7 @@ impl Action<IsInstalledCommand> for IsInstalledCommand {
             if !options.quiet {
                 println!(
                     "✅ A version matching {version_filter} is installed ({})!",
-                    installed_version.to_string()
+                    installed_version
                 );
             }
             return Ok(());

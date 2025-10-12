@@ -47,12 +47,12 @@ impl Action<SwitchCommand> for SwitchCommand {
         let version = version.unwrap();
 
         if !InstalledNodeVersion::is_installed(config, version.version()) {
-            anyhow::bail!("{} is not installed", version.to_string());
+            anyhow::bail!("{} is not installed", version);
         }
 
         let result = set_shims(config, version.version());
         if let Ok(()) = result {
-            println!("Switched to {}", version.to_string());
+            println!("Switched to {}", version);
         }
 
         result
